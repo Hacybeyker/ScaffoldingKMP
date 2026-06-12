@@ -1,0 +1,62 @@
+# .editorconfig — formateo para todos los editores.
+# NOTA: ktlint se configura COMPLETAMENTE desde este archivo (no existe .ktlint.yml).
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+max_line_length = 120
+tab_width = 4
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+# Estilo base de ktlint (alineado con android.set(true) en Gradle)
+ktlint_code_style = android_studio
+
+# Compose — permite @Composable en PascalCase sin desactivar la regla completa
+ktlint_function_naming_ignore_when_annotated_with = Composable, Preview
+
+# Permite múltiples declaraciones top-level por archivo (común en Compose)
+ktlint_standard_filename = disabled
+
+# Imports
+ktlint_standard_no-wildcard-imports = enabled
+ij_kotlin_name_count_to_use_star_import = 999
+ij_kotlin_name_count_to_use_star_import_for_members = 999
+ij_kotlin_packages_to_use_import_on_demand = unset
+ij_kotlin_imports_layout = *, java.**, javax.**, kotlin.**, ^
+
+# Trailing comma (recomendado para Compose)
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+
+# Wrapping / alineación (leído por el IDE de JetBrains)
+ij_kotlin_line_break_after_multiline_method_call_chain = true
+ij_kotlin_continuation_indent_for_chained_calls = true
+ij_kotlin_continuation_indent_for_expression_bodies = true
+ij_kotlin_continuation_indent_in_argument_lists = true
+ij_kotlin_continuation_indent_in_elvis = true
+ij_kotlin_continuation_indent_in_if_conditions = true
+ij_kotlin_continuation_indent_in_parameter_lists = true
+ij_kotlin_continuation_indent_in_supertype_lists = true
+ij_kotlin_align_multiline_binary_operation = false
+ij_kotlin_align_multiline_parameters = true
+ij_kotlin_align_multiline_parameters_in_calls = false
+
+# Blank lines
+ij_kotlin_blank_lines_after_class_header = 0
+ij_kotlin_blank_lines_around_block_when_branches = 0
+ij_kotlin_blank_lines_before_declaration_with_comment_or_annotation_on_separate_line = 1
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.json]
+indent_size = 2
+
+[*.md]
+max_line_length = off
+trim_trailing_whitespace = false

@@ -85,6 +85,9 @@ grep -ri "scaffoldingkmp\|com.hacybeyker" --exclude-dir=.git --exclude-dir=build
 
 # 3. Los tests pasan
 ./gradlew :shared:testAndroidHostTest
+
+# 4. La calidad de código está en verde (ktlint + detekt + Android Lint)
+./gradlew checkCodeQuality
 ```
 
 Para iOS:

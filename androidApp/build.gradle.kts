@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.ktlint)
 }
 
 kotlin {
@@ -45,4 +47,31 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    lint {
+        abortOnError = true
+        warningsAsErrors = false
+        checkDependencies = true // analiza también el módulo :shared
+        htmlReport = true
+        xmlReport = true
+    }
+}
+
+// ── Calidad de código ────────────────────────────────────────────────────────
+ktlint {
+    version.set(libs.versions.ktlintEngine.get())
+    android.set(true)
+    ignoreFailures.set(false)
+    filter {
+        exclude("**/generated/**")
+        exclude("**/build/**")
+        exclude { element -> element.file.path.contains("/build/") || element.file.path.contains("/generated/") }
+    }
+}
+
+detekt {
+    toolVersion = libs.versions.detekt.get()
+    config.setFrom(rootProject.file("config/detekt/detekt.yml"))
+    buildUponDefaultConfig = true
+    allRules = false
+    source.setFrom(files("src"))
 }

@@ -33,6 +33,7 @@
 
 - **Package base**: `{{PACKAGE_NAME}}`
 - **Build**: `./gradlew :androidApp:assembleDebug` · **Tests**: `./gradlew :{{MODULE_NAME}}:testAndroidHostTest`
+- **Calidad (obligatorio antes de commit)**: `./gradlew formatAndAnalyze` (ktlint + detekt + Android Lint)
 
 ---
 

@@ -223,6 +223,13 @@ creado a partir de [ScaffoldingKMP](https://github.com/hacybeyker/ScaffoldingKMP
 - \`./gradlew :shared:testAndroidHostTest\` (Android)
 - \`./gradlew :shared:iosSimulatorArm64Test\` (iOS)
 
+## Calidad de código
+
+ktlint + detekt + Android Lint ya están configurados (ver \`code-quality-setup.md\`):
+
+- \`./gradlew formatAndAnalyze\` — formatea y verifica todo (úsalo antes de cada commit)
+- \`./gradlew checkCodeQuality\` — solo verifica (ideal para CI)
+
 ## Desarrollo con IA
 
 Este proyecto incluye infraestructura para agentes de IA (Claude Code, Copilot,

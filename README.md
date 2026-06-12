@@ -17,6 +17,7 @@ Clona, ejecuta un script, y en menos de un minuto tienes un proyecto KMP con tu 
 | **`.agents/`** | Skills de IA: arquitectura KMP, commits semánticos, changelog, creación de skills |
 | **Symlinks multi-IDE** | Las skills se sincronizan automáticamente para Claude Code, Copilot, Cursor, JetBrains, Junie y Antigravity |
 | **Catálogo de versiones** | `gradle/libs.versions.toml` centralizado (Kotlin 2.4, AGP 9, Compose 1.11) |
+| **Calidad de código** | **ktlint + detekt + Android Lint** preconfigurados con tareas agregadas (`./gradlew formatAndAnalyze`) — ver [code-quality-setup.md](./code-quality-setup.md) |
 
 ## 📋 Requisitos
 
@@ -81,6 +82,10 @@ El agente encontrará las reglas de arquitectura (Clean Architecture + MVVM + St
 # Tests del módulo compartido
 ./gradlew :shared:testAndroidHostTest        # Android
 ./gradlew :shared:iosSimulatorArm64Test     # iOS Simulator
+
+# Calidad de código (ktlint + detekt + Android Lint)
+./gradlew formatAndAnalyze     # formatea y verifica todo
+./gradlew checkCodeQuality     # solo verifica (ideal para CI)
 
 # App iOS: abre iosApp/ en Xcode y ejecuta desde ahí
 ```

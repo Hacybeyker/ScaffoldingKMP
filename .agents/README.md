@@ -48,7 +48,7 @@ Para evitar la fragmentación entre IDEs (VS Code, Android Studio, Claude Code),
    ```
    El script renombra el proyecto y el package, reemplaza los placeholders (`{{PROJECT_NAME}}`, `{{PACKAGE_NAME}}`, `{{MODULE_NAME}}`) y crea los symlinks automáticamente. Guía completa en `SETUP.md`.
 2. **Solo quieres la infraestructura de IA en un proyecto existente**: copia `.agents/` y `AGENTS.md`, actualiza los placeholders manualmente y ejecuta `./.agents/scripts/sync-skills.sh`.
-3. **Validación**: Antes de cada commit, pide a la IA ejecutar las tareas de calidad del proyecto (ej. `./gradlew ktlintFormat detekt`, o la tarea agregada `formatAndAnalyze` si está definida en el `build.gradle.kts` raíz).
+3. **Validación**: Antes de cada commit, pide a la IA ejecutar `./gradlew formatAndAnalyze` (ktlint + detekt + Android Lint, ya configurados en este scaffolding — ver `code-quality-setup.md`).
 
 ---
 
