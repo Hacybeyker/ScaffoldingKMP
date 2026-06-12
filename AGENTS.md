@@ -23,6 +23,19 @@
 
 ---
 
+## 📁 Project Layout
+
+| Módulo | Rol |
+|--------|-----|
+| `{{MODULE_NAME}}/` | Código compartido: UI Compose Multiplatform + lógica común (`commonMain`, `androidMain`, `iosMain`) |
+| `androidApp/` | Entry point de Android (`MainActivity`) |
+| `iosApp/` | Entry point de iOS (SwiftUI + proyecto Xcode) |
+
+- **Package base**: `{{PACKAGE_NAME}}`
+- **Build**: `./gradlew :androidApp:assembleDebug` · **Tests**: `./gradlew :{{MODULE_NAME}}:testAndroidHostTest`
+
+---
+
 ## 🏗️ Project Architecture Rules
 
 ### 1. Dependencias Unidireccionales

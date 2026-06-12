@@ -42,12 +42,12 @@ Para evitar la fragmentación entre IDEs (VS Code, Android Studio, Claude Code),
 
 ## 🚀 Setup para Proyectos Nuevos
 
-1. **Copia** la carpeta `.agents/`, el archivo `AGENTS.md` y el script `setup-ai.sh` a la raíz de tu proyecto KMP.
-2. **Inicializa**: Ejecuta el script interactivo, que reemplaza los placeholders (`{{PROJECT_NAME}}`, `{{PACKAGE_NAME}}`, `{{MODULE_NAME}}`) y crea los symlinks automáticamente:
+1. **Clona el scaffolding** con el nombre de tu proyecto y ejecuta el inicializador desde la raíz:
    ```bash
-   ./setup-ai.sh
+   ./init-project.sh
    ```
-   > Si prefieres hacerlo manual: actualiza los placeholders en `AGENTS.md`, este `README.md` y `.agents/skills/` y luego ejecuta `./.agents/scripts/sync-skills.sh`.
+   El script renombra el proyecto y el package, reemplaza los placeholders (`{{PROJECT_NAME}}`, `{{PACKAGE_NAME}}`, `{{MODULE_NAME}}`) y crea los symlinks automáticamente. Guía completa en `SETUP.md`.
+2. **Solo quieres la infraestructura de IA en un proyecto existente**: copia `.agents/` y `AGENTS.md`, actualiza los placeholders manualmente y ejecuta `./.agents/scripts/sync-skills.sh`.
 3. **Validación**: Antes de cada commit, pide a la IA ejecutar las tareas de calidad del proyecto (ej. `./gradlew ktlintFormat detekt`, o la tarea agregada `formatAndAnalyze` si está definida en el `build.gradle.kts` raíz).
 
 ---

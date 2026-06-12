@@ -1,31 +1,94 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+# 🚀 ScaffoldingKMP
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+> **Plantilla (scaffolding) para crear proyectos Kotlin Multiplatform — Android + iOS — con Compose Multiplatform e infraestructura de IA lista para usar.**
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
-
-### Running the apps
-
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
-
-- Android app: `./gradlew :androidApp:assembleDebug`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
-
-### Running tests
-
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
-
-- Android tests: `./gradlew :shared:testAndroidHostTest`
-- iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
+Clona, ejecuta un script, y en menos de un minuto tienes un proyecto KMP con tu nombre, tu package y reglas de arquitectura listas para que cualquier agente de IA (Claude Code, GitHub Copilot, Cursor, Junie, Antigravity…) trabaje con calidad profesional desde el primer prompt.
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+## ✨ ¿Qué incluye?
+
+| Componente | Descripción |
+|------------|-------------|
+| **Kotlin Multiplatform** | Targets Android + iOS con módulo `shared` |
+| **Compose Multiplatform** | UI compartida con Material Design 3 |
+| **`init-project.sh`** | Script que renombra proyecto, package, applicationId y bundle id en un solo paso |
+| **`AGENTS.md`** | Fuente de verdad para agentes de IA (estándar [agents.md](https://agents.md/)) |
+| **`.agents/`** | Skills de IA: arquitectura KMP, commits semánticos, changelog, creación de skills |
+| **Symlinks multi-IDE** | Las skills se sincronizan automáticamente para Claude Code, Copilot, Cursor, JetBrains, Junie y Antigravity |
+| **Catálogo de versiones** | `gradle/libs.versions.toml` centralizado (Kotlin 2.4, AGP 9, Compose 1.11) |
+
+## 📋 Requisitos
+
+- **JDK 21** (Gradle lo descarga automáticamente vía toolchain si no lo tienes)
+- **Android Studio** (versión reciente con soporte KMP)
+- **Xcode** (solo para compilar/ejecutar la app iOS, requiere macOS)
+
+## ⚡ Quick Start
+
+```bash
+# 1. Clona la plantilla con el nombre de tu nuevo proyecto
+git clone https://github.com/hacybeyker/ScaffoldingKMP.git MiAppGenial
+cd MiAppGenial
+
+# 2. Ejecuta el inicializador (modo interactivo)
+./init-project.sh
+```
+
+El script te preguntará el **nombre del proyecto**, el **package base** y el **nombre visible de la app**, y hará todo el resto: renombrar archivos, mover paquetes, configurar la documentación de IA, crear los symlinks y (opcionalmente) reiniciar el historial de git.
+
+¿Prefieres no responder preguntas? Modo no interactivo (ideal para agentes de IA):
+
+```bash
+./init-project.sh --name MiAppGenial --package com.empresa.miapp --app-name "Mi App Genial" --yes
+```
+
+> 📖 **Guía completa paso a paso:** [SETUP.md](./SETUP.md)
+
+## 🤖 Desarrollo con IA
+
+Una vez inicializado, abre tu agente de IA favorito en la raíz del proyecto y dile:
+
+> *"Lee AGENTS.md y ayúdame a implementar mi primera feature."*
+
+El agente encontrará las reglas de arquitectura (Clean Architecture + MVVM + State/Event/Effect), los estándares de código, la estrategia de testing y la guía de seguridad móvil en `.agents/skills/`.
+
+## 🏗️ Estructura del proyecto
+
+```
+.
+├── shared/            # Código compartido (Compose Multiplatform UI + lógica)
+│   └── src/
+│       ├── commonMain/    # Código común a todas las plataformas
+│       ├── androidMain/   # Implementaciones específicas de Android
+│       └── iosMain/       # Implementaciones específicas de iOS
+├── androidApp/        # Entry point de Android (MainActivity)
+├── iosApp/            # Entry point de iOS (SwiftUI + Xcode project)
+├── AGENTS.md          # Fuente de verdad para agentes de IA
+├── .agents/           # Skills e infraestructura de IA
+│   ├── skills/        # kmp-best-practices, git-commit, changelog, etc.
+│   └── scripts/       # sync-skills.sh (symlinks multi-IDE)
+├── init-project.sh    # ⚡ Inicializador del scaffolding
+└── SETUP.md           # Guía detallada de inicialización
+```
+
+## 🔨 Comandos útiles
+
+```bash
+# Compilar la app Android
+./gradlew :androidApp:assembleDebug
+
+# Tests del módulo compartido
+./gradlew :shared:testAndroidHostTest        # Android
+./gradlew :shared:iosSimulatorArm64Test     # iOS Simulator
+
+# App iOS: abre iosApp/ en Xcode y ejecuta desde ahí
+```
+
+## 📄 Licencia
+
+Usa esta plantilla libremente para cualquier proyecto, personal o comercial.
+
+---
+
+Hecho con ❤️ para acelerar el desarrollo **KMP + IA**. Si te sirve, ¡deja una ⭐ en el repo!
