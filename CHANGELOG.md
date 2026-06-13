@@ -152,28 +152,37 @@ Se auto-elimina cuando se ejecuta `init-project.sh`:
   - Guía de uso embebida en comentarios HTML
 - `reports/` agregado a `.gitignore`
 
-### 🔧 Fixed
-
-- `App.kt` en `commonMain`: wildcard import `androidx.compose.runtime.*` expandido a imports explícitos (regla `no-wildcard-imports` de ktlint)
-- `PlatformInfoContent.kt`: `@Preview` movido de `commonMain` a `androidMain` para evitar error de compilación Android (`Unresolved reference 'ui'` en `org.jetbrains.compose.ui.tooling.preview`)
-- `KoinApplication` en `App.kt`: agregado `@Suppress("DEPRECATION")` ya que el nuevo API `KoinApplication(config:)` aún no está disponible en Koin 4.2.1
-- `PlatformInfoViewModelTest.kt`: aserciones de safe call `?.` mejoradas a `assertNotNull(x).field` (aprovecha el contrato de retorno de `assertNotNull`)
-### 🔧 Fixed
-
-- `report-template.html`: eliminado `</span>` huérfano en la sección de archivos eliminados
-
-### ✨ Added
+### ✨ Added — Skill `feature-implementation` (mejoras al template)
 
 - `report-template.html`: nuevo bloque `.change-summary` por archivo con descripción de impacto:
-    - **Archivo nuevo** — columna única "✅ Por qué se crea"
-    - **Archivo modificado** — columna "⚠️ Antes" (limitación) + "✅ Después" (beneficio)
-    - **Archivo eliminado** — columna única "🗑️ Por qué se elimina"
-    - Guía de uso al pie del template actualizada con los tres patrones de HTML
+  - **Archivo nuevo** — columna única "✅ Por qué se crea"
+  - **Archivo modificado** — columna "⚠️ Antes" (limitación) + "✅ Después" (beneficio)
+  - **Archivo eliminado** — columna única "🗑️ Por qué se elimina"
+  - Guía de uso al pie del template actualizada con los tres patrones de HTML
 
-### 🔧 Fixed
+### ✨ Added — Calidad de código (Hard Rules)
 
-- `androidApp/build.gradle.kts`: `versionName` corregido de `"1.0"` a `"1.0.0"` para alinearlo con semver
-- `iosApp/Configuration/Config.xcconfig`: `MARKETING_VERSION` corregido de `1.0` a `1.0.0`
+- `kmp-best-practices/SKILL.md`: nueva sección `⛔ Hard Rules` con reglas no negociables:
+  - Solo versiones estables en `libs.versions.toml` (prohibido alpha/beta/rc/snapshot)
+  - `libs.versions.toml` como única fuente de versiones; siempre `version.ref`, nunca literal en `.kts`
+  - Sin comentarios inline en el catálogo de versiones
+
+### 🔧 Fixed — Código
+
+- `App.kt` en `commonMain`: wildcard import `androidx.compose.runtime.*` expandido a imports explícitos (regla `no-wildcard-imports` de ktlint)
+- `PlatformInfoContent.kt`: `@Preview` movido de `commonMain` a `androidMain` para evitar `Unresolved reference 'ui'` en `org.jetbrains.compose.ui.tooling.preview`
+- `KoinApplication` en `App.kt`: agregado `@Suppress("DEPRECATION")` ya que el nuevo API `KoinApplication(config:)` aún no está disponible en Koin 4.2.1
+- `PlatformInfoViewModelTest.kt`: aserciones de safe call `?.` mejoradas a `assertNotNull(x).field`
+- `report-template.html`: eliminado `</span>` huérfano en la sección de archivos eliminados
+
+### 🔧 Fixed — Versiones y configuración
+
+- `androidApp/build.gradle.kts`: `versionName` corregido de `"1.0"` a `"1.0.0"` (semver)
+- `iosApp/Configuration/Config.xcconfig`: `MARKETING_VERSION` corregido de `1.0` a `1.0.0`; añadido `IPHONEOS_DEPLOYMENT_TARGET=16.0`
+- `gradle/libs.versions.toml`: `androidx-lifecycle` `2.11.0-beta01` → `2.10.0` (estable); `material3` `1.11.0-alpha07` → `1.9.0` (estable); eliminados comentarios inline
+- `iosApp/iosApp.xcodeproj/project.pbxproj`: `IPHONEOS_DEPLOYMENT_TARGET = 18.2` → `16.0` (mínimo real de CMP 1.11.x)
+- `shared/build.gradle.kts`: añadido `-Xoverride-konan-properties=osVersionMin=16.00` para targets iOS — alinea el deployment target del linker de Kotlin/Native con el del xcodeproj
+- `.github/workflows/ci.yml` (job `ios`): añadido step `Get Xcode version`; clave de caché de Konan incluye ahora la versión de Xcode para invalidar automáticamente al actualizar el runner — corrige fallo de link por klib caches obsoletas (`UIViewLayoutRegion` undefined en iOS < 16)
 
 ---
 
