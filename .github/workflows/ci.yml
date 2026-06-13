@@ -99,7 +99,7 @@ jobs:
 
   ios:
     name: iOS — Build & Test
-    runs-on: macos-latest
+    runs-on: macos-15
     needs: quality
     timeout-minutes: 45
     steps:
