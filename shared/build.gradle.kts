@@ -1,3 +1,5 @@
+@file:OptIn(org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCacheApi::class)
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -22,11 +24,18 @@ kotlin {
             compileTaskProvider.configure {
                 compilerOptions {
                     freeCompilerArgs.add(
-                        "-Xoverride-konan-properties=osVersionMin.${iosTarget.konanTarget.name}=16.00",
+                        "-Xoverride-konan-properties=osVersionMin.${iosTarget.konanTarget.name}=18.00",
                     )
                 }
             }
         }
+    }
+
+    iosSimulatorArm64().binaries.all {
+        disableNativeCache(
+            version = org.jetbrains.kotlin.gradle.plugin.mpp.DisableCacheInKotlinVersion.`2_4_0`,
+            reason = "Xcode 16.4 ld reports errors for duplicate libraries in klib caches",
+        )
     }
 
     android {
