@@ -172,6 +172,43 @@ OLD_TOP_SEGMENT=$(echo "$OLD_PACKAGE_NAME" | cut -d. -f1)
 find . -type d -path "*/kotlin/$OLD_TOP_SEGMENT" -not -path "./.git/*" -not -path "*/build/*" \
     -exec find {} -depth -type d -empty -delete \; 2>/dev/null || true
 
+# ── 4.5. Limpiar ejemplo del scaffolding (feature/platforminfo + Greeting) ────
+echo "🗑️  Eliminando código de ejemplo del scaffolding..."
+# Derive the new package path (already set above as NEW_PACKAGE_PATH)
+SHARED_SRC="shared/src"
+for src_set in commonMain commonTest androidHostTest iosTest iosSimulatorArm64Test; do
+    FEATURE_DIR="$SHARED_SRC/$src_set/kotlin/$NEW_PACKAGE_PATH/feature"
+    if [[ -d "$FEATURE_DIR" ]]; then
+        rm -rf "$FEATURE_DIR"
+        echo "   ✅ Eliminado $FEATURE_DIR"
+    fi
+done
+# Remove legacy Greeting files
+for src_set in commonMain commonTest androidHostTest iosTest; do
+    PKG_DIR="$SHARED_SRC/$src_set/kotlin/$NEW_PACKAGE_PATH"
+    rm -f "$PKG_DIR/Greeting.kt" "$PKG_DIR/GreetingUtil.kt" \
+          "$PKG_DIR/GreetingTest.kt" "$PKG_DIR/GreetingUtilTest.kt"
+done
+# Restore a clean App.kt
+APP_KT="$SHARED_SRC/commonMain/kotlin/$NEW_PACKAGE_PATH/App.kt"
+if [[ -f "$APP_KT" ]]; then
+    cat > "$APP_KT" <<APPEOF
+package $PACKAGE_NAME
+
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+
+@Composable
+fun App() {
+    MaterialTheme {
+        // TODO: add your first screen here
+    }
+}
+APPEOF
+    echo "   ✅ App.kt restaurado limpio."
+fi
+echo "   ✅ Ejemplo del scaffolding eliminado."
+
 # ── 5. Placeholders en la documentación de IA ────────────────────────────────
 echo "📝 Configurando documentación de IA (AGENTS.md y .agents/)..."
 replace_placeholders() {
