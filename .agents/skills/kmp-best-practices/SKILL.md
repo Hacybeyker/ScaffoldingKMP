@@ -66,13 +66,21 @@ Para una comprensión profunda de cada área, consulta las guías de referencia:
 4.  **[Platform Implementations](references/PLATFORM_IMPLEMENTATIONS.md)**: Room KMP, Ktor y `expect`/`actual`.
 5.  **[Mobile Security Guide](references/MOBILE_SECURITY_GUIDE.md)**: SSL Pinning, secretos, cifrado, ofuscación y hardening Android/iOS.
 
+## ⛔ Hard Rules
+
+Estas reglas no son negociables. Violarlas bloquea el merge:
+
+- **Versiones estables obligatorias**: Está terminantemente prohibido usar versiones `alpha`, `beta`, `rc` o `snapshot` en `libs.versions.toml`. Toda dependencia debe apuntar a la última versión estable y oficial disponible en Maven Central o Google Maven. Si la única versión disponible es pre-release, la librería no debe incorporarse al proyecto hasta que exista una versión estable.
+- **`libs.versions.toml` como única fuente de versiones**: Ninguna dependencia puede declarar su versión de forma literal en un `build.gradle.kts`. Siempre se usa `version.ref`.
+- **Sin comentarios inline en `libs.versions.toml`**: Las entradas del catálogo deben ser autodescriptivas por su nombre. No se añaden comentarios `#` explicativos en la misma línea.
+
 ## ✅ Quality Checklist
 - [ ] ¿El código pasa **ktlint** y **detekt**? (usa las tareas de calidad del proyecto, ej. `./gradlew formatAndAnalyze` o `ktlintFormat detekt`)
 - [ ] ¿Se han incluido tests unitarios en `commonTest` usando Fakes?
 - [ ] ¿Las pantallas nuevas o modificadas tienen screenshot tests actualizados?
 - [ ] ¿El Domain es 100% independiente de librerías externas?
 - [ ] ¿Se respetan los principios SOLID (UseCases pequeños, dependencias hacia abstracciones)?
-- [ ] ¿Se utiliza `libs.versions.toml` para cualquier dependencia nueva?
+- [ ] ¿Se utiliza `libs.versions.toml` para cualquier dependencia nueva y su versión es **estable** (sin alpha/beta/rc/snapshot)?
 - [ ] ¿Se cumple el [Security Checklist](references/MOBILE_SECURITY_GUIDE.md) (sin secretos en duro, pinning, almacenamiento cifrado, ofuscación)?
 
 ---
