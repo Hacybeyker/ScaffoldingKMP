@@ -158,6 +158,22 @@ Se auto-elimina cuando se ejecuta `init-project.sh`:
 - `PlatformInfoContent.kt`: `@Preview` movido de `commonMain` a `androidMain` para evitar error de compilación Android (`Unresolved reference 'ui'` en `org.jetbrains.compose.ui.tooling.preview`)
 - `KoinApplication` en `App.kt`: agregado `@Suppress("DEPRECATION")` ya que el nuevo API `KoinApplication(config:)` aún no está disponible en Koin 4.2.1
 - `PlatformInfoViewModelTest.kt`: aserciones de safe call `?.` mejoradas a `assertNotNull(x).field` (aprovecha el contrato de retorno de `assertNotNull`)
+### 🔧 Fixed
+
+- `report-template.html`: eliminado `</span>` huérfano en la sección de archivos eliminados
+
+### ✨ Added
+
+- `report-template.html`: nuevo bloque `.change-summary` por archivo con descripción de impacto:
+    - **Archivo nuevo** — columna única "✅ Por qué se crea"
+    - **Archivo modificado** — columna "⚠️ Antes" (limitación) + "✅ Después" (beneficio)
+    - **Archivo eliminado** — columna única "🗑️ Por qué se elimina"
+    - Guía de uso al pie del template actualizada con los tres patrones de HTML
+
+### 🔧 Fixed
+
+- `androidApp/build.gradle.kts`: `versionName` corregido de `"1.0"` a `"1.0.0"` para alinearlo con semver
+- `iosApp/Configuration/Config.xcconfig`: `MARKETING_VERSION` corregido de `1.0` a `1.0.0`
 
 ---
 
