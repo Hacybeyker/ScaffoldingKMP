@@ -99,7 +99,7 @@ jobs:
 
   ios:
     name: iOS — Build & Test
-    runs-on: macos-15
+    runs-on: macos-26
     needs: quality
     timeout-minutes: 45
     steps:
@@ -114,6 +114,9 @@ jobs:
 
       - name: Set up Gradle (con cache)
         uses: gradle/actions/setup-gradle@v6
+
+      - name: Select Xcode 26
+        run: sudo xcode-select -s /Applications/Xcode_26.app
 
       # Obtiene la versión de Xcode para incluirla en la clave de caché.
       # Cuando el runner actualiza Xcode, el SDK de iOS cambia y las klib
