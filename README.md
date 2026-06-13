@@ -1,5 +1,7 @@
 # 🚀 ScaffoldingKMP
 
+[![CI](https://github.com/hacybeyker/ScaffoldingKMP/actions/workflows/ci.yml/badge.svg)](https://github.com/hacybeyker/ScaffoldingKMP/actions/workflows/ci.yml)
+
 > **Plantilla (scaffolding) para crear proyectos Kotlin Multiplatform — Android + iOS — con Compose Multiplatform e infraestructura de IA lista para usar.**
 
 Clona, ejecuta un script, y en menos de un minuto tienes un proyecto KMP con tu nombre, tu package y reglas de arquitectura listas para que cualquier agente de IA (Claude Code, GitHub Copilot, Cursor, Junie, Antigravity…) trabaje con calidad profesional desde el primer prompt.
@@ -17,7 +19,8 @@ Clona, ejecuta un script, y en menos de un minuto tienes un proyecto KMP con tu 
 | **`.agents/`** | Skills de IA: arquitectura KMP, commits semánticos, changelog, creación de skills |
 | **Symlinks multi-IDE** | Las skills se sincronizan automáticamente para Claude Code, Copilot, Cursor, JetBrains, Junie y Antigravity |
 | **Catálogo de versiones** | `gradle/libs.versions.toml` centralizado (Kotlin 2.4, AGP 9, Compose 1.11) |
-| **Calidad de código** | **ktlint + detekt + Android Lint** preconfigurados con tareas agregadas (`./gradlew formatAndAnalyze`) — ver [code-quality-setup.md](./code-quality-setup.md) |
+| **Calidad de código** | **ktlint + detekt + Android Lint** preconfigurados con tareas agregadas (`./gradlew formatAndAnalyze`) — reglas en `.editorconfig` y `config/detekt/detekt.yml` |
+| **CI/CD (GitHub Actions)** | `ci.yml` (calidad + build/tests Android e iOS en cada push/PR) y `release.yml` (APK/AAB + GitHub Release al pushear un tag `v*`) + Dependabot |
 
 ## 📋 Requisitos
 

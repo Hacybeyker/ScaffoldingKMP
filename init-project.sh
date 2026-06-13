@@ -225,7 +225,7 @@ creado a partir de [ScaffoldingKMP](https://github.com/hacybeyker/ScaffoldingKMP
 
 ## Calidad de código
 
-ktlint + detekt + Android Lint ya están configurados (ver \`code-quality-setup.md\`):
+ktlint + detekt + Android Lint ya están configurados (\`.editorconfig\` y \`config/detekt/detekt.yml\`):
 
 - \`./gradlew formatAndAnalyze\` — formatea y verifica todo (úsalo antes de cada commit)
 - \`./gradlew checkCodeQuality\` — solo verifica (ideal para CI)

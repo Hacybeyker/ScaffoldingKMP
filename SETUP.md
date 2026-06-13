@@ -69,6 +69,7 @@ Con `--yes` no se hacen preguntas: se confirma todo, se eliminan los archivos de
 | **Compose Resources** | `shared/src/commonMain/**` | Imports de la clase generada `Res` (`scaffoldingkmp.shared.generated.resources` → `<tunombre>.shared.generated.resources`) |
 | **iOS** | `iosApp/Configuration/Config.xcconfig` | `PRODUCT_NAME` y `PRODUCT_BUNDLE_IDENTIFIER` |
 | **iOS** | `iosApp/iosApp.xcodeproj/project.pbxproj` | Referencia al `.app` generado |
+| **iOS** | `iosApp/iosApp.xcodeproj/xcshareddata/xcschemes/iosApp.xcscheme` | Nombre del `.app` en el scheme compartido (usado por CI) |
 | **Docs IA** | `AGENTS.md`, `.agents/**` | Placeholders `{{PROJECT_NAME}}`, `{{PACKAGE_NAME}}`, `{{MODULE_NAME}}`, `{{PACKAGE_PATH}}`, `{{PROJECT_ROOT}}` |
 | **IDE/IA** | `.claude/`, `.cursor/`, `.github/copilot/`, `.jetbrains/`, `.junie/`, `.antigravity/`, `.agent/` | Symlinks hacia `.agents/skills/` (vía `sync-skills.sh`) |
 | **README** | `README.md` | Se regenera con la información de tu proyecto |
