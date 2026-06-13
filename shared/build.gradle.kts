@@ -22,7 +22,7 @@ kotlin {
             compileTaskProvider.configure {
                 compilerOptions {
                     freeCompilerArgs.add(
-                        "-Xoverride-konan-properties=osVersionMin.${iosTarget.konanTarget.name}=16.00"
+                        "-Xoverride-konan-properties=osVersionMin.${iosTarget.konanTarget.name}=16.00",
                     )
                 }
             }

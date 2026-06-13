@@ -313,6 +313,12 @@ ktlint + detekt + Android Lint están preconfigurados. Reglas en \`.editorconfig
 ./gradlew checkCodeQuality
 \`\`\`
 
+El proyecto incluye un **pre-commit hook** que ejecuta \`formatAndAnalyze\` automáticamente antes de cada commit. Instálalo una sola vez tras clonar:
+
+\`\`\`bash
+chmod +x scripts/setup-quality-hook.sh && ./scripts/setup-quality-hook.sh
+\`\`\`
+
 ---
 
 ## 🤖 Desarrollo con IA
@@ -405,7 +411,16 @@ if [[ -d ".git" ]]; then
     fi
 fi
 
-# ── 10. Resumen final ────────────────────────────────────────────────────────
+# ── 10. Instalar pre-commit hook ─────────────────────────────────────────────
+# Se ejecuta después del posible git reset para que el hook quede en el .git
+# recién creado. El script se mantiene en el repo para que futuros colaboradores
+# que clonen el proyecto puedan instalarlo con: ./scripts/setup-quality-hook.sh
+if [[ -f "scripts/setup-quality-hook.sh" ]]; then
+    chmod +x scripts/setup-quality-hook.sh
+    ./scripts/setup-quality-hook.sh
+fi
+
+# ── 11. Resumen final ────────────────────────────────────────────────────────
 echo ""
 echo "------------------------------------------------------------"
 echo "🎉 ¡$PROJECT_NAME está listo!"
@@ -417,5 +432,6 @@ echo "   2. Abre el proyecto en Android Studio y sincroniza Gradle."
 echo "   3. iOS: abre iosApp/ en Xcode y configura tu TEAM_ID en"
 echo "      iosApp/Configuration/Config.xcconfig (firma de la app)."
 echo "   4. Verifica el build: ./gradlew :androidApp:assembleDebug"
-echo "   5. Dile a tu IA: 'Lee AGENTS.md y ayúdame a implementar mi primera feature'."
+echo "   5. Nuevos colaboradores: ejecuta ./scripts/setup-quality-hook.sh una vez tras clonar."
+echo "   6. Dile a tu IA: 'Lee AGENTS.md y ayúdame a implementar mi primera feature'."
 echo "------------------------------------------------------------"
