@@ -18,6 +18,15 @@ kotlin {
             baseName = "Shared"
             isStatic = true
         }
+        iosTarget.compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add(
+                        "-Xoverride-konan-properties=osVersionMin.${iosTarget.konanTarget.name}=16.00"
+                    )
+                }
+            }
+        }
     }
 
     android {

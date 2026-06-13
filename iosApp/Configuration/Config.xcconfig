@@ -1,4 +1,5 @@
 TEAM_ID=
+IPHONEOS_DEPLOYMENT_TARGET=16.0
 
 PRODUCT_NAME=ScaffoldingKMP
 PRODUCT_BUNDLE_IDENTIFIER=com.hacybeyker.scaffoldingkmp.ScaffoldingKMP$(TEAM_ID)
