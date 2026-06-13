@@ -119,8 +119,12 @@ if [[ "$ASSUME_YES" == false ]]; then
 fi
 
 # ── 3. Reemplazo en archivos de texto ────────────────────────────────────────
-# Excluye binarios (-I), directorios generados y archivos que se regeneran o
-# eliminan al final del script (README.md, SETUP.md y este propio script).
+# Excluye binarios (-I), directorios generados y archivos que se sobrescriben
+# íntegramente al final del script:
+#   README.md    → regenerado en el paso 7  (queda en el proyecto nuevo)
+#   CHANGELOG.md → regenerado en el paso 7b (queda en el proyecto nuevo)
+#   SETUP.md     → eliminado en el paso 8   (era solo para el scaffolding)
+#   $SCRIPT_NAME → eliminado en el paso 8   (era solo para el scaffolding)
 replace_in_repo() {
     local pattern=$1
     local replacement=$2
@@ -128,7 +132,7 @@ replace_in_repo() {
         --exclude-dir=.git --exclude-dir=.gradle --exclude-dir=.kotlin \
         --exclude-dir=.idea --exclude-dir=build --exclude-dir=xcuserdata \
         --exclude-dir=.konan --exclude-dir=DerivedData \
-        --exclude="$SCRIPT_NAME" --exclude="README.md" --exclude="SETUP.md" \
+        --exclude="$SCRIPT_NAME" --exclude="README.md" --exclude="SETUP.md" --exclude="CHANGELOG.md" \
         "$pattern" . 2>/dev/null | while read -r file; do
         sedi "s|$pattern|$replacement|g" "$file"
         echo "   ✏️  $file"
@@ -237,43 +241,137 @@ fi
 
 # ── 7. README del nuevo proyecto ─────────────────────────────────────────────
 echo "📄 Generando README.md del nuevo proyecto..."
+# GITHUB_USER se puede pasar como variable de entorno; si no existe usa el placeholder.
+GH_USER="${GITHUB_USER:-TU_USUARIO}"
 cat > README.md <<EOF
 # $APP_NAME
 
-Proyecto **Kotlin Multiplatform** (Android + iOS) con **Compose Multiplatform**,
-creado a partir de [ScaffoldingKMP](https://github.com/hacybeyker/ScaffoldingKMP).
+<!-- TODO: reemplaza TU_USUARIO con tu usuario u organización de GitHub -->
+[![CI](https://github.com/$GH_USER/$PROJECT_NAME/actions/workflows/ci.yml/badge.svg)](https://github.com/$GH_USER/$PROJECT_NAME/actions/workflows/ci.yml)
+[![Release](https://github.com/$GH_USER/$PROJECT_NAME/actions/workflows/release.yml/badge.svg)](https://github.com/$GH_USER/$PROJECT_NAME/actions/workflows/release.yml)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.4.0-7F52FF?logo=kotlin&logoColor=white)
+![Compose Multiplatform](https://img.shields.io/badge/Compose_Multiplatform-1.11.1-4285F4?logo=jetpackcompose&logoColor=white)
+![Android](https://img.shields.io/badge/Android-minSdk_24-3DDC84?logo=android&logoColor=white)
+![iOS](https://img.shields.io/badge/iOS-16%2B-000000?logo=apple&logoColor=white)
 
-## Estructura
+> <!-- TODO: escribe aquí una descripción breve de tu proyecto -->
+> *Descripción del proyecto*
 
-- \`shared/\` — Código compartido (UI Compose Multiplatform + lógica común).
-- \`androidApp/\` — Entry point de Android.
-- \`iosApp/\` — Entry point de iOS (SwiftUI).
-- \`AGENTS.md\` + \`.agents/\` — Reglas y skills para agentes de IA.
+---
 
-## Ejecutar
+## 📁 Estructura
 
-- **Android**: \`./gradlew :androidApp:assembleDebug\` o desde Android Studio.
-- **iOS**: abre \`iosApp/\` en Xcode y ejecuta, o usa el run widget del IDE.
+\`\`\`
+.
+├── shared/            # Código compartido — Compose Multiplatform UI + lógica común
+│   └── src/
+│       ├── commonMain/    # Código común a todas las plataformas
+│       ├── androidMain/   # Implementaciones específicas de Android
+│       └── iosMain/       # Implementaciones específicas de iOS
+├── androidApp/        # Entry point Android (MainActivity)
+├── iosApp/            # Entry point iOS (SwiftUI + Xcode project)
+├── AGENTS.md          # Fuente de verdad para agentes de IA
+├── .agents/           # Skills e infraestructura de IA
+└── gradle/
+    └── libs.versions.toml  # Catálogo centralizado de versiones
+\`\`\`
 
-## Tests
+---
 
-- \`./gradlew :shared:testAndroidHostTest\` (Android)
-- \`./gradlew :shared:iosSimulatorArm64Test\` (iOS)
+## ⚡ Ejecutar
 
-## Calidad de código
+| Plataforma | Comando |
+|-----------|---------|
+| Android   | \`./gradlew :androidApp:assembleDebug\` o Run desde Android Studio |
+| iOS       | Abre \`iosApp/\` en Xcode → selecciona simulador → ▶ |
 
-ktlint + detekt + Android Lint ya están configurados (\`.editorconfig\` y \`config/detekt/detekt.yml\`):
+> **iOS:** configura tu Team ID en \`iosApp/Configuration/Config.xcconfig\` antes de compilar en dispositivo físico.
 
-- \`./gradlew formatAndAnalyze\` — formatea y verifica todo (úsalo antes de cada commit)
-- \`./gradlew checkCodeQuality\` — solo verifica (ideal para CI)
+---
 
-## Desarrollo con IA
+## 🧪 Tests
 
-Este proyecto incluye infraestructura para agentes de IA (Claude Code, Copilot,
-Cursor, Junie, etc.). Empieza con:
+\`\`\`bash
+# Tests Android (JVM — sin emulador)
+./gradlew :shared:testAndroidHostTest
 
-> "Lee AGENTS.md y ayúdame a implementar mi primera feature."
+# Tests iOS (requiere Apple Silicon + Xcode)
+./gradlew :shared:iosSimulatorArm64Test
+\`\`\`
+
+---
+
+## 🎨 Calidad de código
+
+ktlint + detekt + Android Lint están preconfigurados. Reglas en \`.editorconfig\` y \`config/detekt/detekt.yml\`.
+
+\`\`\`bash
+# Antes de cada commit: formatea y verifica todo
+./gradlew formatAndAnalyze
+
+# Solo verificación (CI / pre-push)
+./gradlew checkCodeQuality
+\`\`\`
+
+---
+
+## 🤖 Desarrollo con IA
+
+Este proyecto incluye infraestructura para agentes de IA (Claude Code, Copilot, Cursor, Junie, Antigravity…).
+
+Comienza diciéndole a tu agente:
+
+> *"Lee AGENTS.md y ayúdame a implementar mi primera feature."*
+
+El agente encontrará las reglas de Clean Architecture, el estándar de código y la guía de testing en \`.agents/skills/\`.
+
+---
+
+## 📄 Changelog
+
+Ver [CHANGELOG.md](./CHANGELOG.md) para el historial de cambios.
 EOF
+echo "   ✅ README.md generado."
+
+# ── 7b. CHANGELOG del nuevo proyecto ─────────────────────────────────────────
+echo "📝 Generando CHANGELOG.md del nuevo proyecto..."
+INIT_DATE=$(date +%Y-%m-%d)
+cat > CHANGELOG.md <<EOF
+# Changelog — $APP_NAME
+
+> Todos los cambios notables de este proyecto están documentados aquí.
+> Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
+
+---
+
+## [Unreleased]
+
+### ✨ Added
+- Proyecto inicializado a partir de [ScaffoldingKMP](https://github.com/hacybeyker/ScaffoldingKMP)
+
+---
+
+<!-- Ejemplo de entrada:
+
+## [1.0.0] — $INIT_DATE
+
+### ✨ Added
+- Feature X implementada con Clean Architecture (domain → data → presentation)
+
+### 🔧 Fixed
+- Bug Y corregido en el módulo shared
+
+### ♻️ Changed
+- Refactor de Z para mejorar legibilidad
+
+### 🗑️ Removed
+- Eliminado código obsoleto de A
+
+-->
+
+[Unreleased]: https://github.com/TU_ORG/$PROJECT_NAME/compare/v1.0.0...HEAD
+EOF
+echo "   ✅ CHANGELOG.md generado."
 
 # ── 8. Limpieza de archivos del scaffolding ──────────────────────────────────
 CLEANUP="n"
