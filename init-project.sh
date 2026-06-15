@@ -11,9 +11,16 @@
 #   ./init-project.sh --name MiApp --package com.empresa.miapp [--app-name "Mi App"] [--module shared] [--yes]
 #
 # Flags:
-#   -n, --name      Nombre del proyecto (PascalCase, sin espacios). Ej: MiAppGenial
+#   -n, --name      Nombre TÉCNICO del proyecto (PascalCase, SIN espacios). Ej: MiAppGenial
+#                   → se usa como: rootProject.name de Gradle, nombre del binario .app
+#                     en iOS (PRODUCT_NAME), nombre de la carpeta raíz, módulos del IDE.
 #   -p, --package   Package base. Ej: com.empresa.miapp
-#   -a, --app-name  Nombre visible de la app (puede tener espacios). Default: igual a --name
+#                   → se usa como: namespace de Kotlin, applicationId de Android,
+#                     base del bundle id de iOS.
+#   -a, --app-name  Nombre VISIBLE de la app (puede tener espacios y acentos).
+#                   Default: igual a --name. Ej: "Mi App Genial"
+#                   → se muestra en el launcher: Android (strings.xml/app_name)
+#                     e iOS (CFBundleDisplayName vía PRODUCT_DISPLAY_NAME).
 #   -m, --module    Módulo principal de Compose. Default: shared
 #   -y, --yes       Responde "sí" a todas las confirmaciones (limpieza de archivos)
 #   -h, --help      Muestra esta ayuda
@@ -71,13 +78,17 @@ echo "🚀 Scaffolding KMP — Inicializador de Proyecto"
 echo "------------------------------------------------------------"
 
 if [[ -z "$PROJECT_NAME" ]]; then
-    read -r -p "📌 Nombre del Proyecto (PascalCase, ej. MiAppGenial): " PROJECT_NAME
+    echo "📌 Nombre TÉCNICO (PascalCase, sin espacios)."
+    echo "   Se usa en Gradle, el binario .app de iOS, módulos del IDE y la carpeta raíz."
+    read -r -p "   Ej. MiAppGenial: " PROJECT_NAME
 fi
 if [[ -z "$PACKAGE_NAME" ]]; then
     read -r -p "📦 Package base (ej. com.empresa.miapp): " PACKAGE_NAME
 fi
 if [[ -z "$APP_NAME" && "$ASSUME_YES" == false ]]; then
-    read -r -p "🏷️  Nombre visible de la app [$PROJECT_NAME]: " APP_NAME
+    echo "🏷️  Nombre VISIBLE en el launcher (puede tener espacios y acentos)."
+    echo "   Se aplica en Android (strings.xml) e iOS (CFBundleDisplayName)."
+    read -r -p "   [$PROJECT_NAME]: " APP_NAME
 fi
 if [[ -z "$MODULE_NAME" && "$ASSUME_YES" == false ]]; then
     read -r -p "🧩 Módulo principal de Compose [shared]: " MODULE_NAME
@@ -106,11 +117,11 @@ OLD_PACKAGE_RE=${OLD_PACKAGE_NAME//./\\.}
 
 echo ""
 echo "⚙️  Se configurará el proyecto con:"
-echo "   - Proyecto:    $PROJECT_NAME"
-echo "   - App visible: $APP_NAME"
-echo "   - Package:     $PACKAGE_NAME"
-echo "   - Módulo:      $MODULE_NAME"
-echo "   - Root:        $PROJECT_ROOT"
+echo "   - Proyecto (técnico, sin espacios): $PROJECT_NAME"
+echo "   - App visible (launcher):           $APP_NAME"
+echo "   - Package:                          $PACKAGE_NAME"
+echo "   - Módulo:                           $MODULE_NAME"
+echo "   - Root:                             $PROJECT_ROOT"
 echo ""
 
 if [[ "$ASSUME_YES" == false ]]; then
@@ -139,9 +150,18 @@ replace_in_repo() {
     done
 }
 
-echo "🏷️  Configurando nombre visible de la app (Android)..."
+echo "🏷️  Configurando nombre visible de la app (Android — strings.xml)..."
 sedi "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">$APP_NAME</string>|" \
     "androidApp/src/main/res/values/strings.xml"
+
+echo "🏷️  Configurando nombre visible de la app (iOS — PRODUCT_DISPLAY_NAME)..."
+# CFBundleDisplayName en Info.plist apunta a $(PRODUCT_DISPLAY_NAME).
+# Aquí inyectamos APP_NAME (con espacios) — el binario sigue siendo PRODUCT_NAME (sin espacios).
+IOS_XCCONFIG="iosApp/Configuration/Config.xcconfig"
+if [[ -f "$IOS_XCCONFIG" ]]; then
+    sedi "s|^PRODUCT_DISPLAY_NAME=.*|PRODUCT_DISPLAY_NAME=$APP_NAME|" "$IOS_XCCONFIG"
+    echo "   ✏️  $IOS_XCCONFIG"
+fi
 
 echo "📦 Renombrando package: $OLD_PACKAGE_NAME → $PACKAGE_NAME"
 replace_in_repo "$OLD_PACKAGE_RE" "$PACKAGE_NAME"
