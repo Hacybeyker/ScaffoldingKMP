@@ -41,10 +41,17 @@ El script pregunta:
 | 🏷️ Nombre visible de la app | `Mi App Genial` | Libre (puede tener espacios). Default: el nombre del proyecto |
 | 🧩 Módulo principal de Compose | `shared` | Déjalo por defecto salvo que reestructures los módulos |
 
-Al final ofrece dos limpiezas opcionales (recomendadas):
+Al final pregunta por **una limpieza opcional** (recomendada):
 
 - 🧹 **Eliminar archivos del scaffolding** (`SETUP.md` y el propio `init-project.sh`).
-- 🌱 **Reiniciar el historial de git** (borra el historial de la plantilla y crea un commit inicial limpio).
+
+Y aplica **automáticamente** estas tareas (no necesitas hacer nada):
+
+- 📂 **Renombra la carpeta raíz** si no coincide con el nombre del proyecto.
+- 🧠 **Limpia metadatos del IDE** (`.idea/*.iml`, `.idea/modules.xml`, `.idea/.name`).
+- 🌱 **Historial de git inteligente**:
+  - Si clonaste el scaffolding (Opción A): **squashea** el historial en un commit inicial y elimina el remoto del scaffolding.
+  - Si vienes de GitHub Template (Opción B): **añade un commit** de personalización sobre el initial commit (push sin `--force`).
 
 ### Modo no interactivo (CI / agentes de IA)
 
@@ -56,7 +63,7 @@ Al final ofrece dos limpiezas opcionales (recomendadas):
   --yes
 ```
 
-Con `--yes` no se hacen preguntas: se confirma todo, se eliminan los archivos del scaffolding y se reinicia git.
+Con `--yes` no se hacen preguntas: se confirma todo y se eliminan los archivos del scaffolding. El manejo de git sigue siendo automático.
 
 ## 4. ¿Qué modifica exactamente el script?
 
@@ -72,6 +79,9 @@ Con `--yes` no se hacen preguntas: se confirma todo, se eliminan los archivos de
 | **iOS** | `iosApp/iosApp.xcodeproj/xcshareddata/xcschemes/iosApp.xcscheme` | Nombre del `.app` en el scheme compartido (usado por CI) |
 | **Docs IA** | `AGENTS.md`, `.agents/**` | Placeholders `{{PROJECT_NAME}}`, `{{PACKAGE_NAME}}`, `{{MODULE_NAME}}`, `{{PACKAGE_PATH}}`, `{{PROJECT_ROOT}}` |
 | **IDE/IA** | `.claude/`, `.cursor/`, `.github/copilot/`, `.jetbrains/`, `.junie/`, `.antigravity/`, `.agent/` | Symlinks hacia `.agents/skills/` (vía `sync-skills.sh`) |
+| **IntelliJ/Android Studio** | `.idea/*.iml`, `.idea/modules.xml`, `.idea/.name` | Renombrados con el nuevo nombre del proyecto |
+| **Carpeta raíz** | El directorio del proyecto | Renombrado automáticamente si no coincide con `--name` |
+| **Git** | Historial local + remoto | Squash (Opción A) o commit-on-top (Opción B) — sin `--force` |
 | **README** | `README.md` | Se regenera con la información de tu proyecto |
 
 ## 5. Verificación post-setup
@@ -112,10 +122,10 @@ El agente seguirá automáticamente:
 
 ## 7. Pasos manuales opcionales
 
-- **Renombrar la carpeta raíz** si no clonaste con el nombre final: `cd .. && mv ScaffoldingKMP MiAppGenial`.
 - **Icono de la app**: reemplaza los `mipmap` en `androidApp/src/main/res/` y `Assets.xcassets` en `iosApp/`.
 - **Dependencias**: agrega Koin, Ktor, Room, etc. en `gradle/libs.versions.toml` (la IA sabe usarlo — pídeselo).
-- **Repo nuevo en GitHub**: `git remote add origin <url> && git push -u origin main`.
+- **Repo nuevo en GitHub** (solo si vienes de un clone del scaffolding): `git remote add origin <url> && git push -u origin main`.
+- **Team ID de Apple** en `iosApp/Configuration/Config.xcconfig` (necesario para firmar en dispositivo físico).
 
 ## 8. Solución de problemas
 

@@ -15,7 +15,7 @@
 #   -p, --package   Package base. Ej: com.empresa.miapp
 #   -a, --app-name  Nombre visible de la app (puede tener espacios). Default: igual a --name
 #   -m, --module    Módulo principal de Compose. Default: shared
-#   -y, --yes       Responde "sí" a todas las confirmaciones (limpieza + reset de git)
+#   -y, --yes       Responde "sí" a todas las confirmaciones (limpieza de archivos)
 #   -h, --help      Muestra esta ayuda
 
 set -e
@@ -180,7 +180,9 @@ find . -type d -path "*/kotlin/$OLD_TOP_SEGMENT" -not -path "./.git/*" -not -pat
 echo "🗑️  Eliminando código de ejemplo del scaffolding..."
 # Derive the new package path (already set above as NEW_PACKAGE_PATH)
 SHARED_SRC="shared/src"
-for src_set in commonMain commonTest androidHostTest iosTest iosSimulatorArm64Test; do
+# Incluye TODOS los source sets que pueden contener la feature de ejemplo,
+# incluyendo androidMain/iosMain (que tienen el Preview y posibles expect/actual).
+for src_set in commonMain commonTest androidMain androidHostTest iosMain iosTest iosSimulatorArm64Test; do
     FEATURE_DIR="$SHARED_SRC/$src_set/kotlin/$NEW_PACKAGE_PATH/feature"
     if [[ -d "$FEATURE_DIR" ]]; then
         rm -rf "$FEATURE_DIR"
@@ -188,12 +190,12 @@ for src_set in commonMain commonTest androidHostTest iosTest iosSimulatorArm64Te
     fi
 done
 # Remove legacy Greeting files
-for src_set in commonMain commonTest androidHostTest iosTest; do
+for src_set in commonMain commonTest androidMain androidHostTest iosMain iosTest; do
     PKG_DIR="$SHARED_SRC/$src_set/kotlin/$NEW_PACKAGE_PATH"
     rm -f "$PKG_DIR/Greeting.kt" "$PKG_DIR/GreetingUtil.kt" \
           "$PKG_DIR/GreetingTest.kt" "$PKG_DIR/GreetingUtilTest.kt"
 done
-# Restore a clean App.kt
+# Restore a clean App.kt (sin TODO: detekt prohíbe ForbiddenComment por defecto)
 APP_KT="$SHARED_SRC/commonMain/kotlin/$NEW_PACKAGE_PATH/App.kt"
 if [[ -f "$APP_KT" ]]; then
     cat > "$APP_KT" <<APPEOF
@@ -205,13 +207,42 @@ import androidx.compose.runtime.Composable
 @Composable
 fun App() {
     MaterialTheme {
-        // TODO: add your first screen here
+        Unit
     }
 }
 APPEOF
     echo "   ✅ App.kt restaurado limpio."
 fi
 echo "   ✅ Ejemplo del scaffolding eliminado."
+
+# ── 4.6. Renombrar archivos .iml e índices de IntelliJ/Android Studio ───────
+# Android Studio crea archivos .iml usando el rootProject.name (ej. "ScaffoldingKMP.iosApp.iml").
+# Si el usuario abrió el proyecto en el IDE antes de inicializarlo, esos archivos
+# quedan con el nombre viejo y aparecen como "[ScaffoldingKMP.iosApp]" en la vista
+# de módulos. Los renombramos y actualizamos las referencias en modules.xml.
+if [[ -d ".idea" ]]; then
+    echo "🧠 Limpiando metadatos de IntelliJ/Android Studio (.idea/)..."
+    # Renombrar cualquier .iml que empiece con el nombre viejo (en .idea/ y raíz)
+    find .idea -maxdepth 2 -name "${OLD_PROJECT_NAME}*.iml" 2>/dev/null | while read -r old_iml; do
+        new_iml="${old_iml//$OLD_PROJECT_NAME/$PROJECT_NAME}"
+        mv "$old_iml" "$new_iml"
+        echo "   ✏️  $old_iml → $new_iml"
+    done
+    find . -maxdepth 1 -name "${OLD_PROJECT_NAME}*.iml" 2>/dev/null | while read -r old_iml; do
+        new_iml="${old_iml//$OLD_PROJECT_NAME/$PROJECT_NAME}"
+        mv "$old_iml" "$new_iml"
+        echo "   ✏️  $old_iml → $new_iml"
+    done
+    # Actualizar TODAS las referencias internas (modules.xml, workspace.xml, etc.)
+    grep -rIl "$OLD_PROJECT_NAME" .idea 2>/dev/null | while read -r idea_file; do
+        sedi "s|$OLD_PROJECT_NAME|$PROJECT_NAME|g" "$idea_file"
+    done
+    # Actualizar .idea/.name si existe (es el nombre visible del proyecto en el IDE)
+    if [[ -f ".idea/.name" ]]; then
+        echo "$PROJECT_NAME" > ".idea/.name"
+    fi
+    echo "   ✅ Metadatos del IDE actualizados."
+fi
 
 # ── 5. Placeholders en la documentación de IA ────────────────────────────────
 echo "📝 Configurando documentación de IA (AGENTS.md y .agents/)..."
@@ -393,21 +424,33 @@ if [[ "$CLEANUP" =~ ^[Yy] ]]; then
     echo "   ✅ Archivos del scaffolding eliminados."
 fi
 
-# ── 9. Reiniciar historial de git ────────────────────────────────────────────
-GIT_RESET="n"
+# ── 9. Historial de git — automático según el origen ─────────────────────────
+# Estrategia:
+#   • Opción A (clone del scaffolding): squash a un único commit inicial y
+#     elimina el remoto del scaffolding (el usuario añadirá el suyo después).
+#     Así no arrastras commits ajenos a tu nuevo repo.
+#   • Opción B (GitHub Template) o repo personalizado: añade un commit encima
+#     del initial commit que GitHub ya creó. Funciona con `git push` normal.
 if [[ -d ".git" ]]; then
-    if [[ "$ASSUME_YES" == true ]]; then
-        GIT_RESET="y"
-    else
-        read -r -p "🌱 ¿Reiniciar historial de git para empezar de cero? [Y/n]: " GIT_RESET
-        GIT_RESET=${GIT_RESET:-y}
-    fi
-    if [[ "$GIT_RESET" =~ ^[Yy] ]]; then
-        rm -rf .git
-        git init -q
+    REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
+    if [[ "$REMOTE_URL" == *"ScaffoldingKMP"* || "$REMOTE_URL" == *"scaffoldingkmp"* ]]; then
+        echo "🌱 Squash del historial del scaffolding (Opción A detectada)..."
+        CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "main")
+        git remote remove origin 2>/dev/null || true
+        git checkout --orphan _init_clean -q
         git add -A
         git commit -q -m "feat: initial commit from ScaffoldingKMP template ($PROJECT_NAME)"
-        echo "   ✅ Historial reiniciado con un commit inicial."
+        git branch -D "$CURRENT_BRANCH" 2>/dev/null || true
+        git branch -m "$CURRENT_BRANCH"
+        echo "   ✅ Historial squasheado en un commit inicial. Remoto del scaffolding eliminado."
+    else
+        echo "🌱 Añadiendo commit de personalización sobre el historial existente..."
+        git add -A
+        if git commit -q -m "feat: customize scaffolding for $PROJECT_NAME" 2>/dev/null; then
+            echo "   ✅ Commit añadido. Puedes hacer 'git push' sin --force."
+        else
+            echo "   ℹ️  No hubo cambios para commitear."
+        fi
     fi
 fi
 
@@ -420,18 +463,42 @@ if [[ -f "scripts/setup-quality-hook.sh" ]]; then
     ./scripts/setup-quality-hook.sh
 fi
 
+# ── 10b. Renombrar la carpeta raíz si no coincide con el nombre del proyecto ──
+# Se hace AL FINAL para no romper rutas relativas durante el resto del script.
+# La terminal del usuario queda apuntando a la ruta vieja: se lo avisamos.
+RENAMED_ROOT=""
+CURRENT_FOLDER_NAME="$(basename "$PROJECT_ROOT")"
+if [[ "$CURRENT_FOLDER_NAME" != "$PROJECT_NAME" ]]; then
+    PARENT_DIR="$(dirname "$PROJECT_ROOT")"
+    NEW_ROOT="$PARENT_DIR/$PROJECT_NAME"
+    if [[ -e "$NEW_ROOT" ]]; then
+        echo "⚠️  No se renombró la carpeta raíz: ya existe '$NEW_ROOT'."
+        echo "    Hazlo manualmente cuando sea seguro."
+    else
+        # mv funciona aunque estemos dentro de la carpeta (el inode no cambia).
+        mv "$PROJECT_ROOT" "$NEW_ROOT"
+        RENAMED_ROOT="$NEW_ROOT"
+        echo "📂 Carpeta raíz renombrada: $CURRENT_FOLDER_NAME → $PROJECT_NAME"
+    fi
+fi
+
 # ── 11. Resumen final ────────────────────────────────────────────────────────
 echo ""
 echo "------------------------------------------------------------"
 echo "🎉 ¡$PROJECT_NAME está listo!"
 echo "------------------------------------------------------------"
+if [[ -n "$RENAMED_ROOT" ]]; then
+    echo "⚠️  Tu terminal sigue apuntando a la ruta vieja. Cambia con:"
+    echo "      cd $RENAMED_ROOT"
+    echo ""
+fi
 echo "🚀 Siguientes pasos:"
-echo "   1. Si la carpeta raíz aún se llama '$OLD_PROJECT_NAME', renómbrala:"
-echo "      cd .. && mv $OLD_PROJECT_NAME $PROJECT_NAME"
-echo "   2. Abre el proyecto en Android Studio y sincroniza Gradle."
-echo "   3. iOS: abre iosApp/ en Xcode y configura tu TEAM_ID en"
+echo "   1. Abre el proyecto en Android Studio y sincroniza Gradle."
+echo "   2. iOS: abre iosApp/ en Xcode y configura tu TEAM_ID en"
 echo "      iosApp/Configuration/Config.xcconfig (firma de la app)."
-echo "   4. Verifica el build: ./gradlew :androidApp:assembleDebug"
+echo "   3. Verifica el build: ./gradlew :androidApp:assembleDebug"
+echo "   4. Conecta tu repo en GitHub (si vienes de un clone del scaffolding):"
+echo "      git remote add origin <tu-url> && git push -u origin main"
 echo "   5. Nuevos colaboradores: ejecuta ./scripts/setup-quality-hook.sh una vez tras clonar."
 echo "   6. Dile a tu IA: 'Lee AGENTS.md y ayúdame a implementar mi primera feature'."
 echo "------------------------------------------------------------"
