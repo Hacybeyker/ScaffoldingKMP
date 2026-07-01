@@ -127,7 +127,7 @@ jobs:
       # El compilador de Kotlin/Native se descarga en ~/.konan; cachearlo
       # ahorra varios minutos por ejecución.
       - name: Cache Kotlin/Native compiler
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.konan
           key: konan-${{ runner.os }}-xcode${{ steps.xcode.outputs.version }}-${{ hashFiles('gradle/libs.versions.toml') }}
