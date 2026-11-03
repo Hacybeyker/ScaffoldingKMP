@@ -22,25 +22,25 @@ subprojects {
 
 // ── Tareas globales de calidad ───────────────────────────────────────────────
 
-val detektAll by tasks.registering {
+val detektAll = tasks.register("detektAll") {
     group = "verification"
     description = "Run detekt on all modules"
     dependsOn(qualityModules.map { "$it:detekt" })
 }
 
-val ktlintFormatAll by tasks.registering {
+val ktlintFormatAll = tasks.register("ktlintFormatAll") {
     group = "formatting"
     description = "Run ktlint format on all modules"
     dependsOn(qualityModules.map { "$it:ktlintFormat" })
 }
 
-val ktlintCheckAll by tasks.registering {
+val ktlintCheckAll = tasks.register("ktlintCheckAll") {
     group = "verification"
     description = "Run ktlint check on all modules"
     dependsOn(qualityModules.map { "$it:ktlintCheck" })
 }
 
-val lintAll by tasks.registering {
+val lintAll = tasks.register("lintAll") {
     group = "verification"
     description = "Run Android Lint (androidApp analiza también shared vía checkDependencies)"
     dependsOn(":androidApp:lint")

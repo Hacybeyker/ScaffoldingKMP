@@ -5,6 +5,19 @@
 
 ---
 
+## [Unreleased]
+
+### Changed
+- **Dependencias al día:** Gradle 9.7.1 → 9.8.2 (wrapper regenerado con `./gradlew wrapper`, con `distributionSha256Sum`), AGP 9.2.1 → 9.4.1, Kotlin 2.4.20 → 2.4.21, Compose Multiplatform 1.12.0 → 1.12.2, AppCompat 1.7.1 → 1.8.0 y Core 1.19.0 → 1.19.1. AGP y Gradle superan el rango que Kotlin 2.4.21 publica como probado (AGP hasta 9.3.1, Gradle hasta 9.7.0): Kotlin admite versiones más nuevas y el CI las verifica en Android e iOS.
+- Las tareas globales de calidad se registran con `tasks.register("…")`: la sintaxis `by tasks.registering` está deprecada desde Gradle 9.6.
+- Requisito de iOS: Xcode 26 o superior, la versión con la que compila el CI.
+
+### Removed
+- `htmlReport` y `xmlReport` de Lint: están deprecadas y AGP ya genera siempre los reportes.
+- Workaround `disableNativeCache` de Kotlin/Native para Xcode 16.4: con Kotlin 2.4.21 y Xcode 26 o superior ya no hace falta.
+
+---
+
 ## [1.0.0] — 2026-06-12
 
 Primera versión pública del scaffolding. Incluye una base KMP production-ready con
@@ -186,4 +199,5 @@ Se auto-elimina cuando se ejecuta `init-project.sh`:
 
 ---
 
+[Unreleased]: https://github.com/hacybeyker/ScaffoldingKMP/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/hacybeyker/ScaffoldingKMP/releases/tag/v1.0.0

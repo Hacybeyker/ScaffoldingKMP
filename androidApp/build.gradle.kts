@@ -51,8 +51,6 @@ android {
         abortOnError = true
         warningsAsErrors = false
         checkDependencies = true // analiza también el módulo :shared
-        htmlReport = true
-        xmlReport = true
     }
 }
 
