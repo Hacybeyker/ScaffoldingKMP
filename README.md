@@ -15,9 +15,8 @@ Clona, ejecuta un script, y en menos de un minuto tienes un proyecto KMP con tu 
 | **Kotlin Multiplatform** | Targets Android + iOS con módulo `shared` |
 | **Compose Multiplatform** | UI compartida con Material Design 3 |
 | **`init-project.sh`** | Script que renombra proyecto, package, applicationId y bundle id en un solo paso |
-| **`AGENTS.md`** | Fuente de verdad para agentes de IA (estándar [agents.md](https://agents.md/)) |
-| **`.agents/`** | Skills de IA: arquitectura KMP, commits semánticos, changelog, creación de skills |
-| **Symlinks multi-IDE** | Las skills se sincronizan automáticamente para Claude Code, Copilot, Cursor, JetBrains, Junie y Antigravity |
+| **`AGENTS.md`** | Reglas del proyecto para agentes de IA (estándar [agents.md](https://agents.md/)); `CLAUDE.md` lo importa para Claude Code |
+| **Skills globales** | Las skills [hb-*](https://github.com/Hacybeyker/agent-skills) (implementar, revisar, commits, releases) se instalan una vez por máquina, no por proyecto. La arquitectura sigue el perfil `hb-stack-mobile-kotlin` (variante `kmp`) |
 | **Catálogo de versiones** | `gradle/libs.versions.toml` centralizado (Kotlin 2.4, AGP 9, Compose 1.11) |
 | **Calidad de código** | **ktlint + detekt + Android Lint** preconfigurados con tareas agregadas (`./gradlew formatAndAnalyze`) — reglas en `.editorconfig` y `config/detekt/detekt.yml` |
 | **CI/CD (GitHub Actions)** | `ci.yml` (calidad + build/tests Android e iOS en cada push/PR) y `release.yml` (APK/AAB + GitHub Release al pushear un tag `v*`) + Dependabot |
@@ -39,7 +38,7 @@ cd MiAppGenial
 ./init-project.sh
 ```
 
-El script te preguntará el **nombre del proyecto**, el **package base** y el **nombre visible de la app**, y hará todo el resto: renombrar archivos, mover paquetes, configurar la documentación de IA, crear los symlinks, renombrar la carpeta raíz y dejar el historial de git limpio (squash automático si vienes del scaffolding, o commit encima si vienes de GitHub Template).
+El script te preguntará el **nombre del proyecto**, el **package base** y el **nombre visible de la app**, y hará todo el resto: renombrar archivos, mover paquetes, limpiar el ejemplo, completar `AGENTS.md`, renombrar la carpeta raíz y dejar el historial de git limpio (squash automático si vienes del scaffolding, o commit encima si vienes de GitHub Template).
 
 ¿Prefieres no responder preguntas? Modo no interactivo (ideal para agentes de IA):
 
@@ -51,11 +50,12 @@ El script te preguntará el **nombre del proyecto**, el **package base** y el **
 
 ## 🤖 Desarrollo con IA
 
-Una vez inicializado, abre tu agente de IA favorito en la raíz del proyecto y dile:
+1. Instala una vez las skills [hb-*](https://github.com/Hacybeyker/agent-skills) en tu máquina.
+2. Abre tu agente (Claude Code, Copilot, Gemini en Android Studio, Junie…) en la raíz del proyecto y pídele lo que necesites:
 
-> *"Lee AGENTS.md y ayúdame a implementar mi primera feature."*
+> *"Implementa la feature de perfil de usuario."*
 
-El agente encontrará las reglas de arquitectura (Clean Architecture + MVVM + State/Event/Effect), los estándares de código, la estrategia de testing y la guía de seguridad móvil en `.agents/skills/`.
+`hb-implement` lee `AGENTS.md`, aplica el perfil `hb-stack-mobile-kotlin` (variante `kmp`) y corre el DoD del proyecto, que incluye los tests y el build de iOS; `hb-review` revisa, `hb-commit` prepara los commits y `hb-release` corta las versiones.
 
 ## 🏗️ Estructura del proyecto
 
@@ -68,10 +68,8 @@ El agente encontrará las reglas de arquitectura (Clean Architecture + MVVM + St
 │       └── iosMain/       # Implementaciones específicas de iOS
 ├── androidApp/        # Entry point de Android (MainActivity)
 ├── iosApp/            # Entry point de iOS (SwiftUI + Xcode project)
-├── AGENTS.md          # Fuente de verdad para agentes de IA
-├── .agents/           # Skills e infraestructura de IA
-│   ├── skills/        # kmp-best-practices, git-commit, changelog, etc.
-│   └── scripts/       # sync-skills.sh (symlinks multi-IDE)
+├── AGENTS.md          # Reglas del proyecto para agentes de IA
+├── CLAUDE.md          # Importa AGENTS.md para Claude Code
 ├── init-project.sh    # ⚡ Inicializador del scaffolding
 └── SETUP.md           # Guía detallada de inicialización
 ```

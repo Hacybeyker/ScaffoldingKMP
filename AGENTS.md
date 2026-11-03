@@ -1,86 +1,69 @@
-# AGENTS.md — {{PROJECT_NAME}}
+# {{PROJECT_NAME}}
 
-> Este archivo sigue el estándar [agents.md](https://agents.md/) y es la **Fuente de Verdad** para agentes de IA en este proyecto **Kotlin Multiplatform (KMP)**.
+App Kotlin Multiplatform para Android e iOS, con la UI compartida en Compose Multiplatform.
 
----
+## Stack
 
-## 🛠️ Tech Stack & Source of Truth
+- Perfil: hb-stack-mobile-kotlin
+- Variante: kmp
+- Package base: `{{PACKAGE_NAME}}`
+- Módulos: `{{MODULE_NAME}}` (librería KMP con la UI y la lógica compartidas), `androidApp` (punto de entrada de Android) e `iosApp` (proyecto Xcode, punto de entrada de iOS).
+- DI: Koin.
+- Versiones: **siempre** en `gradle/libs.versions.toml`; no las asumas.
+- Calidad: ktlint, detekt y Android Lint (`abortOnError = true`; `androidApp` analiza también el módulo compartido con `checkDependencies`).
+- iOS: Xcode 26 o superior (la versión del CI); deployment target iOS 18.0.
 
-> [!IMPORTANT]
-> No asumas versiones. Consulta **SIEMPRE** `gradle/libs.versions.toml` para dependencias y versiones de plugins.
+## Comandos
 
-| Categoría | Estándar Sugerido |
-|-----------|-------------------|
-| **UI** | Compose Multiplatform + Material Design 3 |
-| **Arquitectura** | Clean Architecture + MVVM + State/Event/Effect |
-| **Navegación** | Compose Navigation con rutas type-safe (`@Serializable`) |
-| **DI / Network** | Koin / Ktor Client |
-| **Persistencia Local** | Room (KMP) para datos estructurados + DataStore para preferencias |
-| **Concurrencia** | Kotlin Coroutines + Flow (`StateFlow` en ViewModels) |
-| **Testing** | kotlin-test + Turbine + Fakes (unitarios) / Screenshot Testing (UI) |
-| **Principios** | SOLID + Patrones de Diseño (Repository, Factory, Observer, etc.) |
-| **Calidad** | ktlint + detekt |
+| Para | Comando |
+| --- | --- |
+| Compilar Android | `./gradlew :androidApp:assembleDebug` |
+| Compilar iOS sin firma (como el CI) | `xcodebuild build -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO` |
+| Tests compartidos en el host Android (JVM) | `./gradlew :shared:testAndroidHostTest` |
+| Tests compartidos en el simulador de iOS | `./gradlew :shared:iosSimulatorArm64Test` |
+| Formatear y analizar (ktlint + detekt + Lint) | `./gradlew formatAndAnalyze` |
+| Solo verificar la calidad, sin formatear (CI) | `./gradlew checkCodeQuality` |
+| Hook de calidad (una vez, tras clonar) | `./scripts/setup-quality-hook.sh` |
 
----
+## DoD
 
-## 📁 Project Layout
+Antes de dar una tarea por terminada, en este orden:
 
-| Módulo | Rol |
-|--------|-----|
-| `{{MODULE_NAME}}/` | Código compartido: UI Compose Multiplatform + lógica común (`commonMain`, `androidMain`, `iosMain`) |
-| `androidApp/` | Entry point de Android (`MainActivity`) |
-| `iosApp/` | Entry point de iOS (SwiftUI + proyecto Xcode) |
+1. `./gradlew formatAndAnalyze`
+2. `./gradlew :shared:testAndroidHostTest`
+3. `./gradlew :shared:iosSimulatorArm64Test`
+4. `./gradlew :androidApp:assembleDebug`
+5. `xcodebuild build -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO`
 
-- **Package base**: `{{PACKAGE_NAME}}`
-- **Build**: `./gradlew :androidApp:assembleDebug` · **Tests**: `./gradlew :{{MODULE_NAME}}:testAndroidHostTest`
-- **Calidad (obligatorio antes de commit)**: `./gradlew formatAndAnalyze` (ktlint + detekt + Android Lint)
+Los pasos 3 y 5 necesitan macOS con Xcode. Si no están disponibles, dilo en la entrega en vez de darlos por pasados.
 
----
+## Arquitectura
 
-## 🏗️ Project Architecture Rules
+Sigue el perfil (variante kmp). Particularidades de este proyecto:
 
-### 1. Dependencias Unidireccionales
-`Presentation (UI/VM) → Domain (UseCases/Entities) ← Data (Repo Impl/Sources)`
-- **Domain**: Kotlin puro. Prohibido depender de frameworks (Android, Room, Ktor).
-- **ViewModels**: Inyectar UseCases. **Prohibido** inyectar Repositorios directamente.
+- Todo el código vive en `{{MODULE_NAME}}`: `commonMain` para la UI y la lógica compartidas, `androidMain` e `iosMain` para las implementaciones de plataforma. `androidApp` (`MainActivity`) e `iosApp` (`iOSApp.swift`, `ContentView.swift`) solo arrancan la app: no les agregues lógica.
+- `MainViewController()`, en `iosMain`, es el puente con SwiftUI. Va en PascalCase porque Swift lo llama como `MainViewControllerKt.MainViewController()`.
+- Koin se inicia una sola vez, en `App.kt`, con los módulos de cada feature.
+- Tests: `commonTest` para la lógica compartida; `androidHostTest` e `iosTest` para lo propio de cada plataforma.
+- `feature/platforminfo` es el ejemplo del template (`init-project.sh` lo borra). Todavía usa el contrato anterior (State/Event/Effect en `presentation/`) y se alineará con el perfil en otro PR: no lo copies para features nuevas.
 
-### 2. State management (MVI Lite)
-Cada feature debe ser dirigida por un estado inmutable definido en `presentation/state/`:
-- **State**: `data class` inmutable.
-- **Event**: `sealed interface` para acciones del usuario.
-- **Effect**: `sealed interface` para acciones de una sola vez (navegación, errores).
+## Reglas del proyecto
 
-### 3. Coding Standards
-- **Composables**: PascalCase. Separar logic (Screen) de UI (Content).
-- **Strings**: Prohibido hardcodear. Usar `Res.string` en `composeResources`.
-- **Imports**: Prohibido el uso de wildcards (`import .*`).
+- Imports con comodín (`import x.*`) prohibidos: ktlint los rechaza en el build (`.editorconfig`).
+- **El deployment target de iOS está en tres lugares que deben coincidir:** `iosApp/Configuration/Config.xcconfig`, `iosApp/iosApp.xcodeproj/project.pbxproj` y el `osVersionMin` de `{{MODULE_NAME}}/build.gradle.kts`. El framework de Kotlin/Native se enlaza con su propio mínimo; si no coincide con el de Xcode, el link avisa o falla.
 
-### 4. SOLID & Patrones de Diseño
-- **SRP**: Una clase, una responsabilidad (UseCases pequeños, un Mapper por transformación).
-- **DIP**: Las capas superiores dependen de abstracciones (interfaces de Repository en Domain).
-- **OCP/ISP/LSP**: Prefiere `sealed interface` y composición sobre herencia.
-- Aplica patrones de diseño donde aporten claridad (Repository, Factory, Strategy, Observer vía `Flow`), nunca por moda.
+## Git
 
----
+- Commits: Conventional Commits, en español, sin emoji y sin atribución de IA.
+- Rama principal: `main`. Se trabaja en ramas cortas y se integra por PR con squash.
+- **La IA no commitea:** deja los cambios sin commitear y entrega el mensaje. Tampoco hace `push`, `tag` ni `merge`.
 
-## 🚀 AI Interaction Workflow
+## Versionado y release
 
-Cualquier agente de IA que trabaje en este proyecto **DEBE** seguir estas guías maestras:
+- SemVer. La versión vive en dos lugares que se suben juntos: `androidApp/build.gradle.kts` (`versionName`; `versionCode` sube de 1 en 1) e `iosApp/Configuration/Config.xcconfig` (`MARKETING_VERSION`; `CURRENT_PROJECT_VERSION` sube de 1 en 1).
+- Tags `vX.Y.Z`, creados por la persona. Al subir el tag, el workflow `release.yml` compila el APK y el AAB de Android y crea el GitHub Release: no lo crees a mano. iOS no se publica desde el CI.
+- `CHANGELOG.md` con Keep a Changelog, en español: cada cambio entra en `[Unreleased]`.
 
-1. **Arquitectura & Workflow**: [ARCHITECTURE_AND_WORKFLOW.md](.agents/skills/kmp-best-practices/references/ARCHITECTURE_AND_WORKFLOW.md)
-2. **Guía de UI & Styling**: [UI_AND_STYLING_GUIDE.md](.agents/skills/kmp-best-practices/references/UI_AND_STYLING_GUIDE.md)
-3. **Calidad & Testing**: [TESTING_STRATEGIES.md](.agents/skills/kmp-best-practices/references/TESTING_STRATEGIES.md)
-4. **Implementación de Plataforma**: [PLATFORM_IMPLEMENTATIONS.md](.agents/skills/kmp-best-practices/references/PLATFORM_IMPLEMENTATIONS.md)
-5. **Seguridad Móvil**: [MOBILE_SECURITY_GUIDE.md](.agents/skills/kmp-best-practices/references/MOBILE_SECURITY_GUIDE.md)
+## Seguridad
 
----
-
-## 🚫 Prohibiciones Críticas (Hard Rules)
-- ❌ **NO** omitas la capa de dominio (UseCases).
-- ❌ **NO** expongas DTOs fuera de la capa de datos (mapear siempre a Domain).
-- ❌ **NO** implementes lógica de negocio en Composables o ViewModels.
-- ❌ **NO** uses `@Preview` en funciones de Screen (solo en Content con fakes).
-- ❌ **NO** hardcodees secretos (API keys, tokens, passwords) ni guardes credenciales en texto plano. Ver [Guía de Seguridad](.agents/skills/kmp-best-practices/references/MOBILE_SECURITY_GUIDE.md).
-
----
-**Standard KMP Config** — {{PROJECT_NAME}}
+- Sigue el perfil (OWASP MASVS). Ningún secreto en el repo: van en `local.properties` o en los secretos de CI (la firma de release usa los que describe `release.yml`).
