@@ -26,7 +26,7 @@ Clona, ejecuta un script, y en menos de un minuto tienes un proyecto KMP con tu 
 
 - **JDK 21** (Gradle lo descarga automáticamente vía toolchain si no lo tienes)
 - **Android Studio** (versión reciente con soporte KMP)
-- **Xcode** (solo para compilar/ejecutar la app iOS, requiere macOS)
+- **Xcode 26 o superior** (solo para compilar/ejecutar la app iOS, requiere macOS). Es la versión con la que compila el CI; en local también se probó con Xcode 27.2
 
 ## ⚡ Quick Start
 
