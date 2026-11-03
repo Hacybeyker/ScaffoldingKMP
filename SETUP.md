@@ -77,8 +77,7 @@ Con `--yes` no se hacen preguntas: se confirma todo y se eliminan los archivos d
 | **iOS** | `iosApp/Configuration/Config.xcconfig` | `PRODUCT_NAME` y `PRODUCT_BUNDLE_IDENTIFIER` |
 | **iOS** | `iosApp/iosApp.xcodeproj/project.pbxproj` | Referencia al `.app` generado |
 | **iOS** | `iosApp/iosApp.xcodeproj/xcshareddata/xcschemes/iosApp.xcscheme` | Nombre del `.app` en el scheme compartido (usado por CI) |
-| **Docs IA** | `AGENTS.md`, `.agents/**` | Placeholders `{{PROJECT_NAME}}`, `{{PACKAGE_NAME}}`, `{{MODULE_NAME}}`, `{{PACKAGE_PATH}}`, `{{PROJECT_ROOT}}` |
-| **IDE/IA** | `.claude/`, `.cursor/`, `.github/copilot/`, `.jetbrains/`, `.junie/`, `.antigravity/`, `.agent/` | Symlinks hacia `.agents/skills/` (vía `sync-skills.sh`) |
+| **Docs IA** | `AGENTS.md` | Placeholders `{{PROJECT_NAME}}`, `{{PACKAGE_NAME}}`, `{{MODULE_NAME}}`, `{{PACKAGE_PATH}}`, `{{PROJECT_ROOT}}` |
 | **IntelliJ/Android Studio** | `.idea/*.iml`, `.idea/modules.xml`, `.idea/.name` | Renombrados con el nuevo nombre del proyecto |
 | **Carpeta raíz** | El directorio del proyecto | Renombrado automáticamente si no coincide con `--name` |
 | **Git** | Historial local + remoto | Squash (Opción A) o commit-on-top (Opción B) — sin `--force` |
@@ -109,16 +108,17 @@ Para iOS:
 
 ## 6. Empezar a desarrollar con IA
 
-Abre tu agente de IA (Claude Code, Copilot, Cursor, Junie…) en la raíz del proyecto y dile:
+Instala una vez las skills [hb-*](https://github.com/Hacybeyker/agent-skills), abre tu agente (Claude Code, Copilot, Gemini en Android Studio, Junie…) en la raíz del proyecto y pídele lo que necesites:
 
-> *"Lee AGENTS.md y ayúdame a implementar mi primera feature."*
+> *"Implementa la feature de perfil de usuario."*
 
-El agente seguirá automáticamente:
+El proyecto solo aporta `AGENTS.md` (Claude Code lo lee a través de `CLAUDE.md`); las skills no se copian al repo. El agente seguirá automáticamente:
 
-- **Arquitectura**: Clean Architecture + MVVM + State/Event/Effect (`.agents/skills/kmp-best-practices/`).
-- **Commits**: mensajes semánticos con `/commit` (`.agents/skills/git-commit/`).
-- **Changelog**: notas de versión con `/changelog`.
-- **Reglas duras**: sin lógica en Composables, sin DTOs fuera de data, sin secretos hardcodeados.
+- **Arquitectura**: Clean Architecture + MVVM (UDF) por features, con el perfil `hb-stack-mobile-kotlin` (variante `kmp`): UI y lógica compartidas en `commonMain`, implementaciones de plataforma en `androidMain`/`iosMain`, y `androidApp`/`iosApp` solo como puntos de entrada.
+- **Workflow**: features, bugs y refactors de punta a punta con el DoD de `AGENTS.md`, que incluye los tests y el build de iOS (`hb-implement`).
+- **Revisión**: code review contra `AGENTS.md` y el perfil (`hb-review`).
+- **Commits y releases**: Conventional Commits (`hb-commit`) y SemVer + changelog (`hb-release`).
+- **Reglas duras**: sin lógica en Composables, sin Entities/DTOs fuera de data, sin secretos hardcodeados.
 
 ## 7. Pasos manuales opcionales
 
@@ -135,4 +135,3 @@ El agente seguirá automáticamente:
 | "Este scaffolding ya fue inicializado" | El script solo puede ejecutarse una vez; clona la plantilla de nuevo |
 | Gradle no sincroniza tras renombrar | En Android Studio: **File → Invalidate Caches / Restart** |
 | Xcode no encuentra el framework `Shared` | Compila primero desde Xcode (el build phase ejecuta `embedAndSignAppleFrameworkForXcode`) |
-| Symlinks rotos en Windows | Ejecuta el script desde **Git Bash** con permisos de symlink habilitados (Developer Mode) |

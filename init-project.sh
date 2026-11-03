@@ -2,7 +2,7 @@
 # init-project.sh — Inicializador del Scaffolding KMP
 #
 # Convierte este scaffolding en TU proyecto: renombra el proyecto, el package,
-# el applicationId, el bundle id de iOS y configura la infraestructura de IA.
+# el applicationId, el bundle id de iOS y los placeholders de AGENTS.md.
 #
 # Uso interactivo:
 #   ./init-project.sh
@@ -265,7 +265,7 @@ if [[ -d ".idea" ]]; then
 fi
 
 # ── 5. Placeholders en la documentación de IA ────────────────────────────────
-echo "📝 Configurando documentación de IA (AGENTS.md y .agents/)..."
+echo "📝 Configurando AGENTS.md..."
 replace_placeholders() {
     local file=$1
     sedi "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" "$file"
@@ -275,19 +275,17 @@ replace_placeholders() {
     sedi "s|{{PROJECT_ROOT}}|$PROJECT_NAME|g" "$file"
 }
 
-[[ -f "AGENTS.md" ]] && replace_placeholders "AGENTS.md"
-find .agents -type f \( -name "*.md" -o -name "*.sh" \) | while read -r file; do
-    replace_placeholders "$file"
-done
-echo "   ✅ Documentación actualizada."
+if [[ -f "AGENTS.md" ]]; then
+    replace_placeholders "AGENTS.md"
+    # La nota sobre la feature de ejemplo deja de aplicar: el paso 4.5 ya la borró.
+    sedi '/feature\/platforminfo/d' "AGENTS.md"
+fi
+echo "   ✅ AGENTS.md actualizado."
 
-# ── 6. Symlinks de skills para los IDEs ──────────────────────────────────────
-echo "🔗 Sincronizando skills con los editores..."
-if [[ -f ".agents/scripts/sync-skills.sh" ]]; then
-    chmod +x .agents/scripts/sync-skills.sh
-    ./.agents/scripts/sync-skills.sh
-else
-    echo "⚠️  No se encontró .agents/scripts/sync-skills.sh — omitido."
+# ── 6. Skills de IA ──────────────────────────────────────────────────────────
+# Las skills son globales (https://github.com/Hacybeyker/agent-skills): el proyecto solo aporta AGENTS.md.
+if [[ ! -e "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/hb-implement" && ! -e "$HOME/.agents/skills/hb-implement" ]]; then
+    echo "ℹ️  Las skills hb-* no están instaladas. Instálalas desde https://github.com/Hacybeyker/agent-skills"
 fi
 
 # ── 7. README del nuevo proyecto ─────────────────────────────────────────────
@@ -321,8 +319,7 @@ cat > README.md <<EOF
 │       └── iosMain/       # Implementaciones específicas de iOS
 ├── androidApp/        # Entry point Android (MainActivity)
 ├── iosApp/            # Entry point iOS (SwiftUI + Xcode project)
-├── AGENTS.md          # Fuente de verdad para agentes de IA
-├── .agents/           # Skills e infraestructura de IA
+├── AGENTS.md          # Reglas del proyecto para agentes de IA (CLAUDE.md lo importa)
 └── gradle/
     └── libs.versions.toml  # Catálogo centralizado de versiones
 \`\`\`
@@ -374,13 +371,11 @@ chmod +x scripts/setup-quality-hook.sh && ./scripts/setup-quality-hook.sh
 
 ## 🤖 Desarrollo con IA
 
-Este proyecto incluye infraestructura para agentes de IA (Claude Code, Copilot, Cursor, Junie, Antigravity…).
+Las reglas del proyecto están en \`AGENTS.md\` (Claude Code lo lee a través de \`CLAUDE.md\`). Con las skills [hb-*](https://github.com/Hacybeyker/agent-skills) instaladas, pídele a tu agente lo que necesites:
 
-Comienza diciéndole a tu agente:
+> *"Implementa la feature de perfil de usuario."*
 
-> *"Lee AGENTS.md y ayúdame a implementar mi primera feature."*
-
-El agente encontrará las reglas de Clean Architecture, el estándar de código y la guía de testing en \`.agents/skills/\`.
+El agente aplica Clean Architecture + MVVM (UDF) por features con el perfil \`hb-stack-mobile-kotlin\` (variante \`kmp\`), y corre el DoD de \`AGENTS.md\`.
 
 ---
 
@@ -520,5 +515,5 @@ echo "   3. Verifica el build: ./gradlew :androidApp:assembleDebug"
 echo "   4. Conecta tu repo en GitHub (si vienes de un clone del scaffolding):"
 echo "      git remote add origin <tu-url> && git push -u origin main"
 echo "   5. Nuevos colaboradores: ejecuta ./scripts/setup-quality-hook.sh una vez tras clonar."
-echo "   6. Dile a tu IA: 'Lee AGENTS.md y ayúdame a implementar mi primera feature'."
+echo "   6. Con las skills hb-* instaladas, pídele a tu IA: 'Implementa la feature X'."
 echo "------------------------------------------------------------"
