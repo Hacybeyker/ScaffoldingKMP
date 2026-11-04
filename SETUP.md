@@ -39,7 +39,6 @@ El script pregunta:
 | 📌 Nombre del Proyecto | `MiAppGenial` | PascalCase, sin espacios ni guiones |
 | 📦 Package base | `com.empresa.miapp` | Minúsculas separadas por puntos |
 | 🏷️ Nombre visible de la app | `Mi App Genial` | Libre (puede tener espacios). Default: el nombre del proyecto |
-| 🧩 Módulo principal de Compose | `shared` | Déjalo por defecto salvo que reestructures los módulos |
 | 🐙 Usuario u org de GitHub | `mi-empresa` | Opcional. Alimenta los badges del README y el link del CHANGELOG. Vacío deja el placeholder `TU_USUARIO`, que el script te recuerda al terminar |
 
 Al final pregunta por **una limpieza opcional** (recomendada):
@@ -79,7 +78,7 @@ Con `--yes` no se hacen preguntas: se confirma todo y se eliminan los archivos d
 | **iOS** | `iosApp/Configuration/Config.xcconfig` | `PRODUCT_NAME` y `PRODUCT_BUNDLE_IDENTIFIER` |
 | **iOS** | `iosApp/iosApp.xcodeproj/project.pbxproj` | Referencia al `.app` generado |
 | **iOS** | `iosApp/iosApp.xcodeproj/xcshareddata/xcschemes/iosApp.xcscheme` | Nombre del `.app` en el scheme compartido (usado por CI) |
-| **Docs IA** | `AGENTS.md` | Placeholders `{{PROJECT_NAME}}`, `{{PACKAGE_NAME}}`, `{{MODULE_NAME}}`, `{{PACKAGE_PATH}}`, `{{PROJECT_ROOT}}` |
+| **Docs IA** | `AGENTS.md` | Placeholders `{{PROJECT_NAME}}`, `{{PACKAGE_NAME}}`, `{{PACKAGE_PATH}}`, `{{PROJECT_ROOT}}` |
 | **IntelliJ/Android Studio** | `.idea/*.iml`, `.idea/modules.xml`, `.idea/.name` | Renombrados con el nuevo nombre del proyecto |
 | **Carpeta raíz** | El directorio del proyecto | Renombrado automáticamente si no coincide con `--name` |
 | **Git** | Historial local + remoto | Squash (Opción A) o commit-on-top (Opción B) — sin `--force` |

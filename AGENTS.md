@@ -7,7 +7,7 @@ App Kotlin Multiplatform para Android e iOS, con la UI compartida en Compose Mul
 - Perfil: hb-stack-mobile-kotlin
 - Variante: kmp
 - Package base: `{{PACKAGE_NAME}}`
-- Módulos: `{{MODULE_NAME}}` (librería KMP con la UI y la lógica compartidas), `androidApp` (punto de entrada de Android) e `iosApp` (proyecto Xcode, punto de entrada de iOS).
+- Módulos: `shared` (librería KMP con la UI y la lógica compartidas), `androidApp` (punto de entrada de Android) e `iosApp` (proyecto Xcode, punto de entrada de iOS).
 - DI: Koin.
 - Versiones: **siempre** en `gradle/libs.versions.toml`; no las asumas.
 - Calidad: ktlint, detekt y Android Lint (`abortOnError = true`; `androidApp` analiza también el módulo compartido con `checkDependencies`).
@@ -41,7 +41,7 @@ Los pasos 3 y 5 necesitan macOS con Xcode. Si no están disponibles, dilo en la 
 
 Sigue el perfil (variante kmp). Particularidades de este proyecto:
 
-- Todo el código vive en `{{MODULE_NAME}}`. En `commonMain`: `core/designsystem` (tema y tokens), `feature/<nombre>/{domain,data,ui,di}` y `navigation/AppNavDisplay.kt`. `androidMain` e `iosMain` repiten los paquetes de la feature con sus implementaciones de plataforma. `androidApp` (`MainActivity`) e `iosApp` (`iOSApp.swift`, `ContentView.swift`) solo arrancan la app: no les agregues lógica.
+- Todo el código vive en `shared`. En `commonMain`: `core/designsystem` (tema y tokens), `feature/<nombre>/{domain,data,ui,di}` y `navigation/AppNavDisplay.kt`. `androidMain` e `iosMain` repiten los paquetes de la feature con sus implementaciones de plataforma. `androidApp` (`MainActivity`) e `iosApp` (`iOSApp.swift`, `ContentView.swift`) solo arrancan la app: no les agregues lógica.
 - El código de plataforma de una feature vive en la propia feature: la interfaz en `commonMain` y una implementación por plataforma, registrada en `internal expect fun <feature>PlatformModule(): Module`, que el módulo de la feature incluye. Cuando dos o más features lo necesiten, se sube a `core` con un `platformModule()`.
 - Koin se inicia una sola vez, en `App.kt`, con el módulo de cada feature.
 - **Cada `NavKey` nueva se registra en `navConfig` (`navigation/AppNavDisplay.kt`):** el back stack se serializa con ese módulo (iOS no tiene reflexión) y una clave sin registrar hace fallar la app al guardar el estado.
@@ -52,7 +52,7 @@ Sigue el perfil (variante kmp). Particularidades de este proyecto:
 ## Reglas del proyecto
 
 - Imports con comodín (`import x.*`) prohibidos: ktlint los rechaza en el build (`.editorconfig`).
-- **El deployment target de iOS está en tres lugares que deben coincidir:** `iosApp/Configuration/Config.xcconfig`, `iosApp/iosApp.xcodeproj/project.pbxproj` y el `osVersionMin` de `{{MODULE_NAME}}/build.gradle.kts`. El framework de Kotlin/Native se enlaza con su propio mínimo; si no coincide con el de Xcode, el link avisa o falla.
+- **El deployment target de iOS está en tres lugares que deben coincidir:** `iosApp/Configuration/Config.xcconfig`, `iosApp/iosApp.xcodeproj/project.pbxproj` y el `osVersionMin` de `shared/build.gradle.kts`. El framework de Kotlin/Native se enlaza con su propio mínimo; si no coincide con el de Xcode, el link avisa o falla.
 
 ## Git
 

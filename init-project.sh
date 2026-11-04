@@ -9,7 +9,7 @@
 #
 # Uso no interactivo (ideal para agentes de IA / CI):
 #   ./init-project.sh --name MiApp --package com.empresa.miapp [--app-name "Mi App"] \
-#                     [--github-user mi-empresa] [--module shared] [--yes]
+#                     [--github-user mi-empresa] [--yes]
 #
 # Flags:
 #   -n, --name      Nombre TÉCNICO del proyecto (PascalCase, SIN espacios). Ej: MiAppGenial
@@ -26,7 +26,6 @@
 #                   También se acepta como variable de entorno GITHUB_USER (la flag gana).
 #                   → se usa en los badges del README y en el link del CHANGELOG.
 #                     Sin valor queda el placeholder TU_USUARIO, y el script lo avisa al final.
-#   -m, --module    Módulo principal de Compose. Default: shared
 #   -y, --yes       Responde "sí" a todas las confirmaciones (limpieza de archivos)
 #   -h, --help      Muestra esta ayuda
 
@@ -56,6 +55,21 @@ usage() {
     exit 0
 }
 
+# Escapa un texto para usarlo como reemplazo de sed con | como separador (\, | y &).
+sed_replacement() {
+    printf '%s' "$1" | sed -e 's/[\\|&]/\\&/g'
+}
+
+# Escapa un texto para un <string> de recursos de Android: XML (&, <, >) y las reglas de aapt2
+# (\, ' y ", y @ o ? al inicio, que aapt2 tomaría como referencia a otro recurso).
+android_string() {
+    local s
+    s=$(printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' \
+        -e "s/'/\\\\'/g" -e 's/"/\\"/g')
+    case "$s" in [@?]*) s="\\$s" ;; esac
+    printf '%s' "$s"
+}
+
 die() {
     echo "❌ Error: $1" >&2
     exit 1
@@ -65,7 +79,6 @@ die() {
 PROJECT_NAME=""
 PACKAGE_NAME=""
 APP_NAME=""
-MODULE_NAME=""
 # GITHUB_USER se acepta como variable de entorno; --github-user gana sobre ella.
 GH_USER="${GITHUB_USER:-}"
 ASSUME_YES=false
@@ -76,7 +89,11 @@ while [[ $# -gt 0 ]]; do
         -p|--package)  PACKAGE_NAME="$2"; shift 2 ;;
         -a|--app-name) APP_NAME="$2"; shift 2 ;;
         -g|--github-user) GH_USER="$2"; shift 2 ;;
-        -m|--module)   MODULE_NAME="$2"; shift 2 ;;
+        # --module ya no se puede elegir: el módulo compartido siempre es `shared`, la estructura de JetBrains.
+        # Se sigue aceptando con ese valor para no romper scripts que ya lo pasaban.
+        -m|--module)
+            [[ "$2" == "shared" ]] || die "--module ya no existe: el módulo compartido siempre se llama shared."
+            shift 2 ;;
         -y|--yes)      ASSUME_YES=true; shift ;;
         -h|--help)     usage ;;
         *)             die "Flag desconocida: $1 (usa --help)" ;;
@@ -99,15 +116,11 @@ if [[ -z "$APP_NAME" && "$ASSUME_YES" == false ]]; then
     echo "   Se aplica en Android (strings.xml) e iOS (CFBundleDisplayName)."
     read -r -p "   [$PROJECT_NAME]: " APP_NAME
 fi
-if [[ -z "$MODULE_NAME" && "$ASSUME_YES" == false ]]; then
-    read -r -p "🧩 Módulo principal de Compose [shared]: " MODULE_NAME
-fi
 if [[ -z "$GH_USER" && "$ASSUME_YES" == false ]]; then
     echo "🐙 Usuario u organización de GitHub del proyecto (badges del README y link del CHANGELOG)."
     read -r -p "   [vacío deja el placeholder TU_USUARIO]: " GH_USER
 fi
 APP_NAME=${APP_NAME:-$PROJECT_NAME}
-MODULE_NAME=${MODULE_NAME:-shared}
 # Sin usuario queda un placeholder evidente: nunca el usuario del autor del scaffolding.
 GH_USER=${GH_USER:-TU_USUARIO}
 
@@ -139,7 +152,6 @@ echo "⚙️  Se configurará el proyecto con:"
 echo "   - Proyecto (técnico, sin espacios): $PROJECT_NAME"
 echo "   - App visible (launcher):           $APP_NAME"
 echo "   - Package:                          $PACKAGE_NAME"
-echo "   - Módulo:                           $MODULE_NAME"
 echo "   - Usuario/org de GitHub:            $GH_USER"
 echo "   - Root:                             $PROJECT_ROOT"
 echo ""
@@ -171,7 +183,7 @@ replace_in_repo() {
 }
 
 echo "🏷️  Configurando nombre visible de la app (Android — strings.xml)..."
-sedi "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">$APP_NAME</string>|" \
+sedi "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">$(sed_replacement "$(android_string "$APP_NAME")")</string>|" \
     "androidApp/src/main/res/values/strings.xml"
 
 echo "🏷️  Configurando nombre visible de la app (iOS — PRODUCT_DISPLAY_NAME)..."
@@ -179,7 +191,7 @@ echo "🏷️  Configurando nombre visible de la app (iOS — PRODUCT_DISPLAY_NA
 # Aquí inyectamos APP_NAME (con espacios) — el binario sigue siendo PRODUCT_NAME (sin espacios).
 IOS_XCCONFIG="iosApp/Configuration/Config.xcconfig"
 if [[ -f "$IOS_XCCONFIG" ]]; then
-    sedi "s|^PRODUCT_DISPLAY_NAME=.*|PRODUCT_DISPLAY_NAME=$APP_NAME|" "$IOS_XCCONFIG"
+    sedi "s|^PRODUCT_DISPLAY_NAME=.*|PRODUCT_DISPLAY_NAME=$(sed_replacement "$APP_NAME")|" "$IOS_XCCONFIG"
     echo "   ✏️  $IOS_XCCONFIG"
 fi
 
@@ -284,7 +296,7 @@ HOMEEOF
 
 # Deja solo el texto que usa la pantalla mínima (los del ejemplo ya no existen).
 # El nombre visible se escapa para XML: un "&" o un "<" romperían Compose Resources.
-APP_NAME_XML=$(printf '%s' "$APP_NAME" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')
+APP_NAME_XML=$(printf '%s' "$APP_NAME" | sed -e 's/\\/\\\\/g' -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')
 cat > "$SHARED_SRC/commonMain/composeResources/values/strings.xml" <<STREOF
 <resources>
     <string name="app_name">$APP_NAME_XML</string>
@@ -392,7 +404,6 @@ replace_placeholders() {
     local file=$1
     sedi "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" "$file"
     sedi "s|{{PACKAGE_NAME}}|$PACKAGE_NAME|g" "$file"
-    sedi "s|{{MODULE_NAME}}|$MODULE_NAME|g" "$file"
     sedi "s|{{PACKAGE_PATH}}|$NEW_PACKAGE_PATH|g" "$file"
     sedi "s|{{PROJECT_ROOT}}|$PROJECT_NAME|g" "$file"
 }

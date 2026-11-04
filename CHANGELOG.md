@@ -25,12 +25,14 @@
 - **CI y release:** los runners Linux pasan de `ubuntu-latest` a `ubuntu-26.04` fijo, cada action queda fijada por SHA (incluida `maxim-lobanov/setup-xcode`, que es de un tercero; Dependabot las mantiene al día) y el CI publica un Build Scan por job solo si el repo es público: los scans van a la instancia pública de Gradle y no heredan la privacidad del repo.
 
 ### Removed
+- `--module` de `init-project.sh` y su pregunta: no renombraba el módulo, solo cambiaba el texto de `AGENTS.md`, que quedaba describiendo un módulo inexistente. El módulo compartido siempre es `shared`, la estructura por defecto de JetBrains; `--module shared` se sigue aceptando para no romper scripts.
 - `htmlReport` y `xmlReport` de Lint: están deprecadas y AGP ya genera siempre los reportes.
 - Workaround `disableNativeCache` de Kotlin/Native para Xcode 16.4: con Kotlin 2.4.21 y Xcode 26 o superior ya no hace falta.
 - La carpeta `.agents` (skills copiadas al repo y sus scripts de sincronización) y los symlinks por editor que creaba `init-project.sh` (`.claude/skills`, `.cursor`, `.github/copilot`, `.jetbrains`, `.junie`, `.antigravity` y `.agent`), junto con sus entradas en `.gitignore`.
 - La feature de ejemplo `platforminfo`, con su contrato State/Event/Effect por `Channel`. También `Platform.kt` con sus `actual` de Android e iOS, `Greeting.kt` y `GreetingUtil.kt` (restos del asistente de proyectos, sin uso), el preview de `androidMain`, `AppAndroidPreview` de `MainActivity` (arrancaba Koin dentro de un preview) y los tests de relleno `assertEquals(3, 1 + 2)`.
 
 ### Fixed
+- Un nombre visible con `&`, `|`, `\`, comillas o un `@`/`?` al inicio rompía el reemplazo de `init-project.sh` o el `strings.xml` de Android: ahora se escapa para sed, XML y aapt2.
 - El CHANGELOG que genera `init-project.sh` enlazaba a `TU_ORG` aunque se pasara `GITHUB_USER`, y usaba encabezados con emoji: ahora usa el usuario indicado y los encabezados estándar de Keep a Changelog.
 - Los badges de versión del README generado estaban fijos y viejos (Kotlin 2.4.0, Compose Multiplatform 1.11.1, iOS 16+): ahora se leen del catálogo y de `Config.xcconfig`.
 - `init-project.sh --help` mostraba la ayuda cortada.
