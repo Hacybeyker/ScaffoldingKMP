@@ -25,6 +25,7 @@
 - **CI y release:** los runners Linux pasan de `ubuntu-latest` a `ubuntu-26.04` fijo, cada action queda fijada por SHA (incluida `maxim-lobanov/setup-xcode`, que es de un tercero; Dependabot las mantiene al día) y el CI publica un Build Scan por job solo si el repo es público: los scans van a la instancia pública de Gradle y no heredan la privacidad del repo.
 
 ### Removed
+- Dependencias y recursos sin uso: `compose.uiToolingPreview` en `androidApp`, que ya no tiene previews, y repetida en `androidMain`, porque ya está en `commonMain`; y el drawable `compose-multiplatform.xml` que dejaba el asistente de proyectos.
 - `--module` de `init-project.sh` y su pregunta: no renombraba el módulo, solo cambiaba el texto de `AGENTS.md`, que quedaba describiendo un módulo inexistente. El módulo compartido siempre es `shared`, la estructura por defecto de JetBrains; `--module shared` se sigue aceptando para no romper scripts.
 - `htmlReport` y `xmlReport` de Lint: están deprecadas y AGP ya genera siempre los reportes.
 - Workaround `disableNativeCache` de Kotlin/Native para Xcode 16.4: con Kotlin 2.4.21 y Xcode 26 o superior ya no hace falta.
