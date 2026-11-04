@@ -138,10 +138,12 @@ jobs:
         id: xcode
         run: echo "version=$(xcodebuild -version | awk 'NR==1{print $2}')" >> "$GITHUB_OUTPUT"
 
-      # El compilador de Kotlin/Native se descarga en ~/.konan; cachearlo
-      # ahorra varios minutos por ejecución.
-      - name: Cache Kotlin/Native compiler
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      # El compilador de Kotlin/Native se descarga en ~/.konan; cachearlo ahorra varios minutos por
+      # ejecución. Los PRs solo lo restauran: guardarlo desde cada PR suma ~500 MB que solo ese PR
+      # puede usar. Se guarda desde main, como hace setup-gradle con el caché de Gradle.
+      - name: Restore Kotlin/Native compiler
+        id: konan-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.konan
           key: konan-${{ runner.os }}-xcode${{ steps.xcode.outputs.version }}-${{ hashFiles('gradle/libs.versions.toml') }}
@@ -158,6 +160,13 @@ jobs:
             -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO
+
+      - name: Save Kotlin/Native compiler
+        if: github.ref == 'refs/heads/main' && steps.konan-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.konan
+          key: ${{ steps.konan-cache.outputs.cache-primary-key }}
 
       - name: Upload test reports
         if: failure()

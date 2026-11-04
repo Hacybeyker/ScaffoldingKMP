@@ -23,6 +23,7 @@
 - Tests con fakes en cada capa, tests del `PlatformInfoSource` de Android y de iOS, `verify()` del grafo de Koin y `runTestWithMainDispatcher` (`core/testing`) para fijar `Dispatchers.Main` en `commonTest`. Dependencias nuevas: Navigation 3 1.2.0, `lifecycle-viewmodel-navigation3` 2.11.0, el plugin de kotlinx.serialization y `koin-test` 4.2.2.
 - `init-project.sh` reduce la feature `home` a una pantalla mínima en todos los source sets y reordena los imports según `.editorconfig` tras el cambio de package.
 - **CI y release:** los runners Linux pasan de `ubuntu-latest` a `ubuntu-26.04` fijo, cada action queda fijada por SHA (incluida `maxim-lobanov/setup-xcode`, que es de un tercero; Dependabot las mantiene al día) y el CI publica un Build Scan por job solo si el repo es público: los scans van a la instancia pública de Gradle y no heredan la privacidad del repo.
+- CI de iOS: el caché del compilador de Kotlin/Native se guarda solo desde `main`; los PRs lo restauran. Antes cada PR guardaba su propia copia de ~500 MB que solo ese PR podía usar.
 
 ### Removed
 - Dependencias y recursos sin uso: `compose.uiToolingPreview` en `androidApp`, que ya no tiene previews, y repetida en `androidMain`, porque ya está en `commonMain`; y el drawable `compose-multiplatform.xml` que dejaba el asistente de proyectos.
