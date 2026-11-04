@@ -187,7 +187,7 @@ naming:
   InvalidPackageDeclaration:
     active: true
   # Desactivada: choca con la convención KMP de archivos expect/actual
-  # (Platform.android.kt declara AndroidPlatform, Platform.ios.kt declara IOSPlatform…)
+  # (HomePlatformModule.android.kt y HomePlatformModule.ios.kt declaran el mismo actual…)
   MatchingDeclarationName:
     active: false
   MemberNameEqualsClassName:
@@ -364,7 +364,7 @@ style:
   UnusedPrivateMember:
     active: true
     allowedNames: '(_|ignored|expected|serialVersionUID)'
-    ignoreAnnotated: ['Preview']
+    ignoreAnnotated: ['Preview', 'PreviewLightDark']
   UseArrayLiteralsInAnnotations:
     active: true
   UseCheckNotNull:

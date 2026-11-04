@@ -1,0 +1,5 @@
+<resources>
+    <string name="home_platform">%1$s %2$s</string>
+    <string name="home_greeting">Hello from %1$s!</string>
+    <string name="home_refresh">Refresh</string>
+</resources>

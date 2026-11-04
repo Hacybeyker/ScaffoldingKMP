@@ -63,9 +63,9 @@ El script te preguntará el **nombre del proyecto**, el **package base** y el **
 .
 ├── shared/            # Código compartido (Compose Multiplatform UI + lógica)
 │   └── src/
-│       ├── commonMain/    # Código común a todas las plataformas
-│       ├── androidMain/   # Implementaciones específicas de Android
-│       └── iosMain/       # Implementaciones específicas de iOS
+│       ├── commonMain/    # core/, feature/<nombre>/ (domain / data / ui / di), navigation/
+│       ├── androidMain/   # Implementaciones de Android (mismos paquetes)
+│       └── iosMain/       # Implementaciones de iOS (mismos paquetes)
 ├── androidApp/        # Entry point de Android (MainActivity)
 ├── iosApp/            # Entry point de iOS (SwiftUI + Xcode project)
 ├── AGENTS.md          # Reglas del proyecto para agentes de IA

@@ -196,44 +196,146 @@ OLD_TOP_SEGMENT=$(echo "$OLD_PACKAGE_NAME" | cut -d. -f1)
 find . -type d -path "*/kotlin/$OLD_TOP_SEGMENT" -not -path "./.git/*" -not -path "*/build/*" \
     -exec find {} -depth -type d -empty -delete \; 2>/dev/null || true
 
-# ── 4.5. Limpiar ejemplo del scaffolding (feature/platforminfo + Greeting) ────
+# ── 4.5. Limpiar la feature de ejemplo (home) ────────────────────────────────
+# La feature "home" del scaffolding demuestra la arquitectura (domain/data/ui/di) y el código de
+# plataforma por DI. Se reemplaza por una pantalla mínima para que el proyecto arranque limpio.
+# HomeNavKey.kt y HomeNavigation.kt se conservan: homeEntry() llama al HomeScreen() mínimo y
+# AppNavDisplay compila igual.
 echo "🗑️  Eliminando código de ejemplo del scaffolding..."
-# Derive the new package path (already set above as NEW_PACKAGE_PATH)
 SHARED_SRC="shared/src"
-# Incluye TODOS los source sets que pueden contener la feature de ejemplo,
-# incluyendo androidMain/iosMain (que tienen el Preview y posibles expect/actual).
-for src_set in commonMain commonTest androidMain androidHostTest iosMain iosTest iosSimulatorArm64Test; do
-    FEATURE_DIR="$SHARED_SRC/$src_set/kotlin/$NEW_PACKAGE_PATH/feature"
-    if [[ -d "$FEATURE_DIR" ]]; then
-        rm -rf "$FEATURE_DIR"
-        echo "   ✅ Eliminado $FEATURE_DIR"
-    fi
+COMMON_SRC="$SHARED_SRC/commonMain/kotlin/$NEW_PACKAGE_PATH"
+HOME_SRC="$COMMON_SRC/feature/home"
+
+rm -rf "$HOME_SRC/domain" "$HOME_SRC/data" "$HOME_SRC/di"
+rm -f "$HOME_SRC/ui/HomeUiState.kt" \
+      "$HOME_SRC/ui/HomeViewModel.kt" \
+      "$HOME_SRC/ui/HomeContent.kt" \
+      "$HOME_SRC/ui/HomeAction.kt"
+# Las implementaciones de plataforma y los tests de la feature. core/testing se conserva.
+for src_set in androidMain iosMain commonTest androidHostTest iosTest; do
+    rm -rf "$SHARED_SRC/$src_set/kotlin/$NEW_PACKAGE_PATH/feature"
 done
-# Remove legacy Greeting files
-for src_set in commonMain commonTest androidMain androidHostTest iosMain iosTest; do
-    PKG_DIR="$SHARED_SRC/$src_set/kotlin/$NEW_PACKAGE_PATH"
-    rm -f "$PKG_DIR/Greeting.kt" "$PKG_DIR/GreetingUtil.kt" \
-          "$PKG_DIR/GreetingTest.kt" "$PKG_DIR/GreetingUtilTest.kt"
-done
-# Restore a clean App.kt (sin TODO: detekt prohíbe ForbiddenComment por defecto)
-APP_KT="$SHARED_SRC/commonMain/kotlin/$NEW_PACKAGE_PATH/App.kt"
-if [[ -f "$APP_KT" ]]; then
-    cat > "$APP_KT" <<APPEOF
+
+# El package de Res sale del nombre del proyecto en minúsculas y del módulo (ver paso 3).
+RES_PACKAGE="$NEW_NAME_LOWER.shared.generated.resources"
+cat > "$HOME_SRC/ui/HomeScreen.kt" <<HOMEEOF
+package $PACKAGE_NAME.feature.home.ui
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import $PACKAGE_NAME.core.designsystem.${PROJECT_NAME}Theme
+import org.jetbrains.compose.resources.stringResource
+import $RES_PACKAGE.Res
+import $RES_PACKAGE.app_name
+
+@Composable
+fun HomeScreen(modifier: Modifier = Modifier) {
+    Scaffold(modifier = modifier) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = stringResource(Res.string.app_name),
+                style = MaterialTheme.typography.headlineMedium,
+            )
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun HomeScreenPreview() {
+    ${PROJECT_NAME}Theme {
+        HomeScreen()
+    }
+}
+HOMEEOF
+
+# Deja solo el texto que usa la pantalla mínima (los del ejemplo ya no existen).
+# El nombre visible se escapa para XML: un "&" o un "<" romperían Compose Resources.
+APP_NAME_XML=$(printf '%s' "$APP_NAME" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')
+cat > "$SHARED_SRC/commonMain/composeResources/values/strings.xml" <<STREOF
+<resources>
+    <string name="app_name">$APP_NAME_XML</string>
+</resources>
+STREOF
+
+# App.kt sin el módulo del ejemplo: cada feature nueva agrega aquí su módulo de Koin.
+cat > "$COMMON_SRC/App.kt" <<APPEOF
 package $PACKAGE_NAME
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import $PACKAGE_NAME.core.designsystem.${PROJECT_NAME}Theme
+import $PACKAGE_NAME.navigation.AppNavDisplay
+import org.koin.compose.KoinApplication
+import org.koin.dsl.koinConfiguration
 
 @Composable
 fun App() {
-    MaterialTheme {
-        Unit
+    KoinApplication(configuration = koinConfiguration { modules() }) {
+        ${PROJECT_NAME}Theme {
+            AppNavDisplay()
+        }
     }
 }
 APPEOF
-    echo "   ✅ App.kt restaurado limpio."
-fi
-echo "   ✅ Ejemplo del scaffolding eliminado."
+
+find "$SHARED_SRC" -type d -empty -delete
+echo "   ✅ Feature de ejemplo eliminada; HomeScreen mínimo restaurado."
+
+# ── 4.55. Reordenar imports tras el rename de package ────────────────────────
+# ktlint exige el orden de ij_kotlin_imports_layout (.editorconfig): primero todo lo que no es
+# java/javax/kotlin, después java.*, javax.*, kotlin.* y al final los alias, cada grupo en orden
+# lexicográfico. El rename es un sed en sitio, así que los imports del proyecto y de Res se quedan
+# donde estaban los del scaffolding: con `com.hacybeyker...` caían después de `androidx`, pero un
+# package como `ai.startup.nova` va antes. Sin este paso, el primer `./gradlew checkCodeQuality`
+# del proyecto nuevo falla con `standard:import-ordering`.
+#
+# `LC_ALL=C sort` reproduce el orden de ktlint dentro de cada grupo (comparación byte a byte).
+sort_kotlin_imports() {
+    local file=$1 first last total block imports plain
+    first=$(grep -n '^import ' "$file" | head -1 | cut -d: -f1)
+    [[ -z "$first" ]] && return 0
+    last=$(grep -n '^import ' "$file" | tail -1 | cut -d: -f1)
+
+    # Solo se toca un bloque contiguo de imports; con líneas sueltas en medio (comentarios)
+    # el orden es una decisión, no un ordenamiento, y se deja para ktlintFormat.
+    total=$(grep -c '^import ' "$file")
+    block=$((last - first + 1))
+    [[ "$total" -ne "$block" ]] && return 0
+
+    imports=$(sed -n "${first},${last}p" "$file")
+    plain=$(grep -v ' as ' <<< "$imports" || true)
+    {
+        [[ "$first" -gt 1 ]] && sed -n "1,$((first - 1))p" "$file"
+        if [[ -n "$plain" ]]; then
+            grep -Ev '^import (java|javax|kotlin)\.' <<< "$plain" | LC_ALL=C sort
+            grep -E '^import java\.' <<< "$plain" | LC_ALL=C sort
+            grep -E '^import javax\.' <<< "$plain" | LC_ALL=C sort
+            grep -E '^import kotlin\.' <<< "$plain" | LC_ALL=C sort
+        fi
+        grep ' as ' <<< "$imports" | LC_ALL=C sort
+        sed -n "$((last + 1)),\$p" "$file"
+    } > "$file.tmp"
+    mv "$file.tmp" "$file"
+}
+
+echo "🔤 Reordenando imports para ktlint..."
+find shared/src androidApp/src -name "*.kt" -type f | while read -r kt_file; do
+    sort_kotlin_imports "$kt_file"
+done
+echo "   ✅ Imports ordenados."
 
 # ── 4.6. Renombrar archivos .iml e índices de IntelliJ/Android Studio ───────
 # Android Studio crea archivos .iml usando el rootProject.name (ej. "ScaffoldingKMP.iosApp.iml").
@@ -277,8 +379,8 @@ replace_placeholders() {
 
 if [[ -f "AGENTS.md" ]]; then
     replace_placeholders "AGENTS.md"
-    # La nota sobre la feature de ejemplo deja de aplicar: el paso 4.5 ya la borró.
-    sedi '/feature\/platforminfo/d' "AGENTS.md"
+    # La nota sobre la feature de ejemplo deja de aplicar: el paso 4.5 ya la redujo.
+    sedi '/feature\/home. es el ejemplo del template/d' "AGENTS.md"
 fi
 echo "   ✅ AGENTS.md actualizado."
 
@@ -314,9 +416,9 @@ cat > README.md <<EOF
 .
 ├── shared/            # Código compartido — Compose Multiplatform UI + lógica común
 │   └── src/
-│       ├── commonMain/    # Código común a todas las plataformas
-│       ├── androidMain/   # Implementaciones específicas de Android
-│       └── iosMain/       # Implementaciones específicas de iOS
+│       ├── commonMain/    # core/, feature/<nombre>/ (domain / data / ui / di), navigation/
+│       ├── androidMain/   # Implementaciones de Android (mismos paquetes)
+│       └── iosMain/       # Implementaciones de iOS (mismos paquetes)
 ├── androidApp/        # Entry point Android (MainActivity)
 ├── iosApp/            # Entry point iOS (SwiftUI + Xcode project)
 ├── AGENTS.md          # Reglas del proyecto para agentes de IA (CLAUDE.md lo importa)
@@ -408,7 +510,7 @@ cat > CHANGELOG.md <<EOF
 ## [1.0.0] — $INIT_DATE
 
 ### ✨ Added
-- Feature X implementada con Clean Architecture (domain → data → presentation)
+- Feature X implementada con Clean Architecture (domain → data → ui)
 
 ### 🔧 Fixed
 - Bug Y corregido en el módulo shared
