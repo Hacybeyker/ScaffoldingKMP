@@ -19,7 +19,7 @@ Clona, ejecuta un script, y en menos de un minuto tienes un proyecto KMP con tu 
 | **Skills globales** | Las skills [hb-*](https://github.com/Hacybeyker/agent-skills) (implementar, revisar, commits, releases) se instalan una vez por máquina, no por proyecto. La arquitectura sigue el perfil `hb-stack-mobile-kotlin` (variante `kmp`) |
 | **Catálogo de versiones** | `gradle/libs.versions.toml` centralizado (Kotlin 2.4, AGP 9, Compose 1.11) |
 | **Calidad de código** | **ktlint + detekt + Android Lint** preconfigurados con tareas agregadas (`./gradlew formatAndAnalyze`) — reglas en `.editorconfig` y `config/detekt/detekt.yml` |
-| **CI/CD (GitHub Actions)** | `ci.yml` (calidad + build/tests Android e iOS en cada push/PR) y `release.yml` (APK/AAB + GitHub Release al pushear un tag `v*`) + Dependabot |
+| **CI/CD (GitHub Actions)** | `ci.yml` (calidad + build/tests Android e iOS en cada push/PR) y `release.yml` (APK/AAB + GitHub Release al pushear un tag `v*`) + Dependabot. Actions **fijadas por SHA** y **Build Scan** por job en repos públicos |
 
 ## 📋 Requisitos
 
