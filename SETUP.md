@@ -108,11 +108,11 @@ Para iOS:
 
 ## 6. Empezar a desarrollar con IA
 
-Instala una vez las skills [hb-*](https://github.com/Hacybeyker/agent-skills), abre tu agente (Claude Code, Copilot, Gemini en Android Studio, Junie…) en la raíz del proyecto y pídele lo que necesites:
+Abre tu agente (Claude Code, Copilot, Gemini en Android Studio, Junie…) en la raíz del proyecto y pídele lo que necesites. Es opcional, pero recomendado, instalar antes las skills [hb-*](https://github.com/Hacybeyker/agent-skills): sin ellas el agente trabaja solo con las reglas de `AGENTS.md`, y con ellas suma el perfil de arquitectura y los flujos de abajo.
 
 > *"Implementa la feature de perfil de usuario."*
 
-El proyecto solo aporta `AGENTS.md` (Claude Code lo lee a través de `CLAUDE.md`); las skills no se copian al repo. El agente seguirá automáticamente:
+El proyecto solo aporta `AGENTS.md` (Claude Code lo lee a través de `CLAUDE.md`); las skills no se copian al repo. Con las skills instaladas, el agente sigue automáticamente:
 
 - **Arquitectura**: Clean Architecture + MVVM (UDF) por features, con el perfil `hb-stack-mobile-kotlin` (variante `kmp`): UI y lógica compartidas en `commonMain`, implementaciones de plataforma en `androidMain`/`iosMain`, y `androidApp`/`iosApp` solo como puntos de entrada.
 - **Workflow**: features, bugs y refactors de punta a punta con el DoD de `AGENTS.md`, que incluye los tests y el build de iOS (`hb-implement`).
@@ -123,7 +123,7 @@ El proyecto solo aporta `AGENTS.md` (Claude Code lo lee a través de `CLAUDE.md`
 ## 7. Pasos manuales opcionales
 
 - **Icono de la app**: reemplaza los `mipmap` en `androidApp/src/main/res/` y `Assets.xcassets` en `iosApp/`.
-- **Dependencias**: agrega Koin, Ktor, Room, etc. en `gradle/libs.versions.toml` (la IA sabe usarlo — pídeselo).
+- **Dependencias**: Koin y Navigation 3 ya vienen incluidos; agrega Ktor, Room, DataStore, etc. en `gradle/libs.versions.toml` (la IA sabe usarlo — pídeselo).
 - **Repo nuevo en GitHub** (solo si vienes de un clone del scaffolding): `git remote add origin <url> && git push -u origin main`.
 - **Team ID de Apple** en `iosApp/Configuration/Config.xcconfig` (necesario para firmar en dispositivo físico).
 

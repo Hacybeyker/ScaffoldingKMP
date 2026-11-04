@@ -65,6 +65,7 @@ Sigue el perfil (variante kmp). Particularidades de este proyecto:
 - SemVer. La versión vive en dos lugares que se suben juntos: `androidApp/build.gradle.kts` (`versionName`; `versionCode` sube de 1 en 1) e `iosApp/Configuration/Config.xcconfig` (`MARKETING_VERSION`; `CURRENT_PROJECT_VERSION` sube de 1 en 1).
 - Tags `vX.Y.Z`, creados por la persona. Al subir el tag, el workflow `release.yml` compila el APK y el AAB de Android y crea el GitHub Release: no lo crees a mano. iOS no se publica desde el CI.
 - `CHANGELOG.md` con Keep a Changelog, en español: cada cambio entra en `[Unreleased]`.
+- **Solo en el repo del template:** se versiona únicamente en `CHANGELOG.md`. No se crean tags ni GitHub Releases, y la versión de la app no se toca: es la inicial de los proyectos nuevos. `init-project.sh` borra esta línea.
 
 ## Seguridad
 

@@ -17,7 +17,7 @@ Clona, ejecuta un script, y en menos de un minuto tienes un proyecto KMP con tu 
 | **`init-project.sh`** | Script que renombra proyecto, package, applicationId y bundle id en un solo paso |
 | **`AGENTS.md`** | Reglas del proyecto para agentes de IA (estándar [agents.md](https://agents.md/)); `CLAUDE.md` lo importa para Claude Code |
 | **Skills globales** | Las skills [hb-*](https://github.com/Hacybeyker/agent-skills) (implementar, revisar, commits, releases) se instalan una vez por máquina, no por proyecto. La arquitectura sigue el perfil `hb-stack-mobile-kotlin` (variante `kmp`) |
-| **Catálogo de versiones** | `gradle/libs.versions.toml` centralizado (Kotlin 2.4, AGP 9, Compose 1.11) |
+| **Catálogo de versiones** | `gradle/libs.versions.toml` centralizado: todas las versiones y plugins en un solo archivo, que Dependabot mantiene al día |
 | **Calidad de código** | **ktlint + detekt + Android Lint** preconfigurados con tareas agregadas (`./gradlew formatAndAnalyze`) — reglas en `.editorconfig` y `config/detekt/detekt.yml` |
 | **CI/CD (GitHub Actions)** | `ci.yml` (calidad + build/tests Android e iOS en cada push/PR) y `release.yml` (APK/AAB + GitHub Release al pushear un tag `v*`) + Dependabot. Actions **fijadas por SHA** y **Build Scan** por job en repos públicos |
 
@@ -50,7 +50,7 @@ El script te preguntará el **nombre del proyecto**, el **package base** y el **
 
 ## 🤖 Desarrollo con IA
 
-1. Instala una vez las skills [hb-*](https://github.com/Hacybeyker/agent-skills) en tu máquina.
+1. *(Opcional, recomendado)* Instala una vez las skills [hb-*](https://github.com/Hacybeyker/agent-skills) en tu máquina. Sin ellas, el agente trabaja igual con las reglas de `AGENTS.md`; con ellas suma el perfil de arquitectura completo y los flujos para implementar, revisar, hacer commits y versionar.
 2. Abre tu agente (Claude Code, Copilot, Gemini en Android Studio, Junie…) en la raíz del proyecto y pídele lo que necesites:
 
 > *"Implementa la feature de perfil de usuario."*
