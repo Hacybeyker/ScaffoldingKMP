@@ -8,7 +8,8 @@
 #   ./init-project.sh
 #
 # Uso no interactivo (ideal para agentes de IA / CI):
-#   ./init-project.sh --name MiApp --package com.empresa.miapp [--app-name "Mi App"] [--module shared] [--yes]
+#   ./init-project.sh --name MiApp --package com.empresa.miapp [--app-name "Mi App"] \
+#                     [--github-user mi-empresa] [--module shared] [--yes]
 #
 # Flags:
 #   -n, --name      Nombre TÉCNICO del proyecto (PascalCase, SIN espacios). Ej: MiAppGenial
@@ -21,6 +22,10 @@
 #                   Default: igual a --name. Ej: "Mi App Genial"
 #                   → se muestra en el launcher: Android (strings.xml/app_name)
 #                     e iOS (CFBundleDisplayName vía PRODUCT_DISPLAY_NAME).
+#   -g, --github-user  Usuario u organización de GitHub del proyecto nuevo. Ej: mi-empresa
+#                   También se acepta como variable de entorno GITHUB_USER (la flag gana).
+#                   → se usa en los badges del README y en el link del CHANGELOG.
+#                     Sin valor queda el placeholder TU_USUARIO, y el script lo avisa al final.
 #   -m, --module    Módulo principal de Compose. Default: shared
 #   -y, --yes       Responde "sí" a todas las confirmaciones (limpieza de archivos)
 #   -h, --help      Muestra esta ayuda
@@ -46,7 +51,8 @@ sedi() {
 }
 
 usage() {
-    sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'
+    # Imprime el bloque de comentarios del encabezado completo, sin depender de números de línea.
+    awk 'NR == 1 { next } /^#/ { sub(/^# ?/, ""); print; next } { exit }' "$0"
     exit 0
 }
 
@@ -60,6 +66,8 @@ PROJECT_NAME=""
 PACKAGE_NAME=""
 APP_NAME=""
 MODULE_NAME=""
+# GITHUB_USER se acepta como variable de entorno; --github-user gana sobre ella.
+GH_USER="${GITHUB_USER:-}"
 ASSUME_YES=false
 
 while [[ $# -gt 0 ]]; do
@@ -67,6 +75,7 @@ while [[ $# -gt 0 ]]; do
         -n|--name)     PROJECT_NAME="$2"; shift 2 ;;
         -p|--package)  PACKAGE_NAME="$2"; shift 2 ;;
         -a|--app-name) APP_NAME="$2"; shift 2 ;;
+        -g|--github-user) GH_USER="$2"; shift 2 ;;
         -m|--module)   MODULE_NAME="$2"; shift 2 ;;
         -y|--yes)      ASSUME_YES=true; shift ;;
         -h|--help)     usage ;;
@@ -93,8 +102,14 @@ fi
 if [[ -z "$MODULE_NAME" && "$ASSUME_YES" == false ]]; then
     read -r -p "🧩 Módulo principal de Compose [shared]: " MODULE_NAME
 fi
+if [[ -z "$GH_USER" && "$ASSUME_YES" == false ]]; then
+    echo "🐙 Usuario u organización de GitHub del proyecto (badges del README y link del CHANGELOG)."
+    read -r -p "   [vacío deja el placeholder TU_USUARIO]: " GH_USER
+fi
 APP_NAME=${APP_NAME:-$PROJECT_NAME}
 MODULE_NAME=${MODULE_NAME:-shared}
+# Sin usuario queda un placeholder evidente: nunca el usuario del autor del scaffolding.
+GH_USER=${GH_USER:-TU_USUARIO}
 
 # ── 2. Validaciones ──────────────────────────────────────────────────────────
 [[ -n "$PROJECT_NAME" && -n "$PACKAGE_NAME" ]] || die "El nombre del proyecto y el package son obligatorios."
@@ -104,6 +119,10 @@ MODULE_NAME=${MODULE_NAME:-shared}
 
 [[ "$PACKAGE_NAME" =~ ^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$ ]] \
     || die "Package inválido: '$PACKAGE_NAME'. Usa minúsculas separadas por puntos (ej. com.empresa.miapp)."
+
+# Reglas de GitHub: letras, números y guiones simples, sin guion al inicio ni al final, hasta 39.
+[[ "$GH_USER" == "TU_USUARIO" || ( "$GH_USER" =~ ^[A-Za-z0-9](-?[A-Za-z0-9])*$ && ${#GH_USER} -le 39 ) ]] \
+    || die "Usuario de GitHub inválido: '$GH_USER'. Usa letras, números y guiones simples (ej. mi-empresa)."
 
 [[ "$PACKAGE_NAME" != "$OLD_PACKAGE_NAME" ]] \
     || die "El package no puede ser el mismo del scaffolding ($OLD_PACKAGE_NAME)."
@@ -121,6 +140,7 @@ echo "   - Proyecto (técnico, sin espacios): $PROJECT_NAME"
 echo "   - App visible (launcher):           $APP_NAME"
 echo "   - Package:                          $PACKAGE_NAME"
 echo "   - Módulo:                           $MODULE_NAME"
+echo "   - Usuario/org de GitHub:            $GH_USER"
 echo "   - Root:                             $PROJECT_ROOT"
 echo ""
 
@@ -394,18 +414,29 @@ fi
 
 # ── 7. README del nuevo proyecto ─────────────────────────────────────────────
 echo "📄 Generando README.md del nuevo proyecto..."
-# GITHUB_USER se puede pasar como variable de entorno; si no existe usa el placeholder.
-GH_USER="${GITHUB_USER:-TU_USUARIO}"
+# Con salto de línea incluido: sin placeholder no queda una línea en blanco de más.
+GH_TODO=""
+[[ "$GH_USER" == "TU_USUARIO" ]] && GH_TODO=$'<!-- TODO: reemplaza TU_USUARIO con tu usuario u organización de GitHub -->\n'
+
+# Los badges se leen del catálogo y de la configuración de iOS en vez de hardcodearse: un badge que
+# miente sobre la versión es peor que no tener badge.
+catalog_version() {
+    sed -n "s|^$1 *= *\"\([^\"]*\)\".*|\1|p" gradle/libs.versions.toml | head -1
+}
+KOTLIN_VERSION=$(catalog_version kotlin)
+CMP_VERSION=$(catalog_version composeMultiplatform)
+MIN_SDK=$(catalog_version android-minSdk)
+IOS_MIN=$(sed -n 's|^IPHONEOS_DEPLOYMENT_TARGET *= *\([0-9.]*\).*|\1|p' iosApp/Configuration/Config.xcconfig | head -1)
+
 cat > README.md <<EOF
 # $APP_NAME
 
-<!-- TODO: reemplaza TU_USUARIO con tu usuario u organización de GitHub -->
-[![CI](https://github.com/$GH_USER/$PROJECT_NAME/actions/workflows/ci.yml/badge.svg)](https://github.com/$GH_USER/$PROJECT_NAME/actions/workflows/ci.yml)
+${GH_TODO}[![CI](https://github.com/$GH_USER/$PROJECT_NAME/actions/workflows/ci.yml/badge.svg)](https://github.com/$GH_USER/$PROJECT_NAME/actions/workflows/ci.yml)
 [![Release](https://github.com/$GH_USER/$PROJECT_NAME/actions/workflows/release.yml/badge.svg)](https://github.com/$GH_USER/$PROJECT_NAME/actions/workflows/release.yml)
-![Kotlin](https://img.shields.io/badge/Kotlin-2.4.0-7F52FF?logo=kotlin&logoColor=white)
-![Compose Multiplatform](https://img.shields.io/badge/Compose_Multiplatform-1.11.1-4285F4?logo=jetpackcompose&logoColor=white)
-![Android](https://img.shields.io/badge/Android-minSdk_24-3DDC84?logo=android&logoColor=white)
-![iOS](https://img.shields.io/badge/iOS-16%2B-000000?logo=apple&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-$KOTLIN_VERSION-7F52FF?logo=kotlin&logoColor=white)
+![Compose Multiplatform](https://img.shields.io/badge/Compose_Multiplatform-$CMP_VERSION-4285F4?logo=jetpackcompose&logoColor=white)
+![Android](https://img.shields.io/badge/Android-minSdk_$MIN_SDK-3DDC84?logo=android&logoColor=white)
+![iOS](https://img.shields.io/badge/iOS-$IOS_MIN%2B-000000?logo=apple&logoColor=white)
 
 > <!-- TODO: escribe aquí una descripción breve de tu proyecto -->
 > *Descripción del proyecto*
@@ -502,7 +533,7 @@ cat > CHANGELOG.md <<EOF
 
 ## [Unreleased]
 
-### ✨ Added
+### Added
 - Proyecto inicializado a partir de [ScaffoldingKMP](https://github.com/hacybeyker/ScaffoldingKMP)
 
 ---
@@ -511,21 +542,21 @@ cat > CHANGELOG.md <<EOF
 
 ## [1.0.0] — $INIT_DATE
 
-### ✨ Added
-- Feature X implementada con Clean Architecture (domain → data → ui)
+### Added
+- Feature X implementada por capas dentro de la feature (domain → data → ui)
 
-### 🔧 Fixed
-- Bug Y corregido en el módulo shared
-
-### ♻️ Changed
+### Changed
 - Refactor de Z para mejorar legibilidad
 
-### 🗑️ Removed
+### Removed
 - Eliminado código obsoleto de A
+
+### Fixed
+- Bug Y corregido en el módulo shared
 
 -->
 
-[Unreleased]: https://github.com/TU_ORG/$PROJECT_NAME/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/$GH_USER/$PROJECT_NAME/compare/v1.0.0...HEAD
 EOF
 echo "   ✅ CHANGELOG.md generado."
 
@@ -620,4 +651,7 @@ echo "   4. Conecta tu repo en GitHub (si vienes de un clone del scaffolding):"
 echo "      git remote add origin <tu-url> && git push -u origin main"
 echo "   5. Nuevos colaboradores: ejecuta ./scripts/setup-quality-hook.sh una vez tras clonar."
 echo "   6. Con las skills hb-* instaladas, pídele a tu IA: 'Implementa la feature X'."
+if [[ "$GH_USER" == "TU_USUARIO" ]]; then
+    echo "   ⚠️  Reemplaza TU_USUARIO en README.md y CHANGELOG.md por tu usuario u organización de GitHub."
+fi
 echo "------------------------------------------------------------"

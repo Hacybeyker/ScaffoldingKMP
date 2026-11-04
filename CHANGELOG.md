@@ -11,6 +11,7 @@
 ### Added
 - Hook de pre-commit de calidad (`scripts/setup-quality-hook.sh`): corre `./gradlew formatAndAnalyze` antes de cada commit. `init-project.sh` lo instala; quien clone el proyecto lo instala con `./scripts/setup-quality-hook.sh`.
 - `init-project.sh` pide el nombre visible de la app (`PRODUCT_DISPLAY_NAME` en `Config.xcconfig` e `Info.plist` para iOS), renombra la carpeta raíz del proyecto y limpia los metadatos del IDE.
+- `init-project.sh --github-user` (también lo pregunta en modo interactivo y acepta la variable `GITHUB_USER`): el usuario u organización de GitHub del proyecto nuevo alimenta los badges del README y el link del CHANGELOG. Sin valor queda el placeholder `TU_USUARIO`, y el script lo avisa al terminar.
 
 ### Changed
 - iOS: deployment target mínimo 18.0 (antes 16.0) y Xcode 26 o superior, la versión con la que compila el CI (el job de iOS corre en `macos-26`).
@@ -30,6 +31,9 @@
 - La feature de ejemplo `platforminfo`, con su contrato State/Event/Effect por `Channel`. También `Platform.kt` con sus `actual` de Android e iOS, `Greeting.kt` y `GreetingUtil.kt` (restos del asistente de proyectos, sin uso), el preview de `androidMain`, `AppAndroidPreview` de `MainActivity` (arrancaba Koin dentro de un preview) y los tests de relleno `assertEquals(3, 1 + 2)`.
 
 ### Fixed
+- El CHANGELOG que genera `init-project.sh` enlazaba a `TU_ORG` aunque se pasara `GITHUB_USER`, y usaba encabezados con emoji: ahora usa el usuario indicado y los encabezados estándar de Keep a Changelog.
+- Los badges de versión del README generado estaban fijos y viejos (Kotlin 2.4.0, Compose Multiplatform 1.11.1, iOS 16+): ahora se leen del catálogo y de `Config.xcconfig`.
+- `init-project.sh --help` mostraba la ayuda cortada.
 - El pre-commit hook que instala `scripts/setup-quality-hook.sh` re-stageaba todo archivo modificado y metía en el commit cambios que se habían dejado fuera a propósito. Ahora solo re-stagea los archivos Kotlin que ya formaban parte del commit. Si ya lo tienes instalado, vuelve a correr `./scripts/setup-quality-hook.sh`.
 
 ---
