@@ -8,7 +8,7 @@
 ## [Unreleased]
 
 ### Changed
-- **Dependencias al día:** Gradle 9.7.1 → 9.8.2 (wrapper regenerado con `./gradlew wrapper`, con `distributionSha256Sum`), AGP 9.2.1 → 9.4.1, Kotlin 2.4.20 → 2.4.21, Compose Multiplatform 1.12.0 → 1.12.2, AppCompat 1.7.1 → 1.8.0 y Core 1.19.0 → 1.19.1. AGP y Gradle superan el rango que Kotlin 2.4.21 publica como probado (AGP hasta 9.3.1, Gradle hasta 9.7.0): Kotlin admite versiones más nuevas y el CI las verifica en Android e iOS.
+- **Dependencias al día:** Gradle 9.7.1 → 9.8.2 (wrapper regenerado con `./gradlew wrapper`, con `distributionSha256Sum`), AGP 9.2.1 → 9.5.0, Kotlin 2.4.20 → 2.4.21, Compose Multiplatform 1.12.0 → 1.12.2, AppCompat 1.7.1 → 1.8.0 y Core 1.19.0 → 1.19.1. AGP y Gradle superan el rango que Kotlin 2.4.21 publica como probado (AGP hasta 9.3.1, Gradle hasta 9.7.0): Kotlin admite versiones más nuevas y el CI las verifica en Android e iOS.
 - Las tareas globales de calidad se registran con `tasks.register("…")`: la sintaxis `by tasks.registering` está deprecada desde Gradle 9.6.
 - Requisito de iOS: Xcode 26 o superior, la versión con la que compila el CI.
 - **Infraestructura de IA con skills globales:** el proyecto solo aporta `AGENTS.md` (estándar [agents.md](https://agents.md/)) y `CLAUDE.md`, que lo importa. Las skills [hb-*](https://github.com/Hacybeyker/agent-skills) se instalan una vez por máquina y la arquitectura sigue el perfil `hb-stack-mobile-kotlin` (variante `kmp`). `AGENTS.md` pasa a la estructura estándar (Stack, Comandos, DoD, Arquitectura, Reglas del proyecto, Git, Versionado y release, Seguridad), con un DoD que cubre Android e iOS. `init-project.sh` solo completa los placeholders de `AGENTS.md` y avisa si las skills `hb-*` no están instaladas.
@@ -17,6 +17,9 @@
 - `htmlReport` y `xmlReport` de Lint: están deprecadas y AGP ya genera siempre los reportes.
 - Workaround `disableNativeCache` de Kotlin/Native para Xcode 16.4: con Kotlin 2.4.21 y Xcode 26 o superior ya no hace falta.
 - La carpeta `.agents` (skills copiadas al repo y sus scripts de sincronización) y los symlinks por editor que creaba `init-project.sh` (`.claude/skills`, `.cursor`, `.github/copilot`, `.jetbrains`, `.junie`, `.antigravity` y `.agent`), junto con sus entradas en `.gitignore`.
+
+### Fixed
+- El pre-commit hook que instala `scripts/setup-quality-hook.sh` re-stageaba todo archivo modificado y metía en el commit cambios que se habían dejado fuera a propósito. Ahora solo re-stagea los archivos Kotlin que ya formaban parte del commit. Si ya lo tienes instalado, vuelve a correr `./scripts/setup-quality-hook.sh`.
 
 ---
 
