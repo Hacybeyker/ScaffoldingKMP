@@ -1,16 +1,22 @@
 # Changelog — ScaffoldingKMP
 
 > Todos los cambios notables de este proyecto están documentados aquí.  
-> Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
+> Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).  
+> El template se versiona solo en este archivo: no se crean tags ni GitHub Releases.
 
 ---
 
 ## [Unreleased]
 
+### Added
+- Hook de pre-commit de calidad (`scripts/setup-quality-hook.sh`): corre `./gradlew formatAndAnalyze` antes de cada commit. `init-project.sh` lo instala; quien clone el proyecto lo instala con `./scripts/setup-quality-hook.sh`.
+- `init-project.sh` pide el nombre visible de la app (`PRODUCT_DISPLAY_NAME` en `Config.xcconfig` e `Info.plist` para iOS), renombra la carpeta raíz del proyecto y limpia los metadatos del IDE.
+
 ### Changed
+- iOS: deployment target mínimo 18.0 (antes 16.0) y Xcode 26 o superior, la versión con la que compila el CI (el job de iOS corre en `macos-26`).
+- El template se versiona solo en `CHANGELOG.md`, sin tags ni GitHub Releases. La regla está en `AGENTS.md` y `init-project.sh` la quita en los proyectos nuevos, que sí publican versiones con tags.
 - **Dependencias al día:** Gradle 9.7.1 → 9.8.2 (wrapper regenerado con `./gradlew wrapper`, con `distributionSha256Sum`), AGP 9.2.1 → 9.5.0, Kotlin 2.4.20 → 2.4.21, Compose Multiplatform 1.12.0 → 1.12.2, AppCompat 1.7.1 → 1.8.0 y Core 1.19.0 → 1.19.1. AGP y Gradle superan el rango que Kotlin 2.4.21 publica como probado (AGP hasta 9.3.1, Gradle hasta 9.7.0): Kotlin admite versiones más nuevas y el CI las verifica en Android e iOS.
 - Las tareas globales de calidad se registran con `tasks.register("…")`: la sintaxis `by tasks.registering` está deprecada desde Gradle 9.6.
-- Requisito de iOS: Xcode 26 o superior, la versión con la que compila el CI.
 - **Infraestructura de IA con skills globales:** el proyecto solo aporta `AGENTS.md` (estándar [agents.md](https://agents.md/)) y `CLAUDE.md`, que lo importa. Las skills [hb-*](https://github.com/Hacybeyker/agent-skills) se instalan una vez por máquina y la arquitectura sigue el perfil `hb-stack-mobile-kotlin` (variante `kmp`). `AGENTS.md` pasa a la estructura estándar (Stack, Comandos, DoD, Arquitectura, Reglas del proyecto, Git, Versionado y release, Seguridad), con un DoD que cubre Android e iOS. `init-project.sh` solo completa los placeholders de `AGENTS.md` y avisa si las skills `hb-*` no están instaladas.
 - **Código alineado con el perfil `hb-stack-mobile-kotlin` (variante `kmp`), con el mismo esqueleto que el template Android:** la feature de ejemplo pasa a llamarse `home` (`domain`/`data`/`ui`/`di`) y sigue mostrando la plataforma. La pantalla expone un único `uiState` y un único `onAction(HomeAction)`, con la acción `Refresh`. La plataforma llega por DI: `PlatformInfoSource` en `commonMain`, con una implementación por plataforma en `homePlatformModule()`. Se agregan el design system (`core/designsystem`), Navigation 3 de Compose Multiplatform (`AppNavDisplay`, con cada `NavKey` registrada para iOS), los textos en Compose Resources y los `@PreviewLightDark` en `commonMain`. Koin arranca con la API no deprecada (`KoinApplication(configuration = koinConfiguration { … })`).
 - Tests con fakes en cada capa, tests del `PlatformInfoSource` de Android y de iOS, `verify()` del grafo de Koin y `runTestWithMainDispatcher` (`core/testing`) para fijar `Dispatchers.Main` en `commonTest`. Dependencias nuevas: Navigation 3 1.2.0, `lifecycle-viewmodel-navigation3` 2.11.0, el plugin de kotlinx.serialization y `koin-test` 4.2.2.
@@ -33,7 +39,9 @@
 Primera versión pública del scaffolding. Incluye una base KMP production-ready con
 infraestructura de IA, calidad de código, CI/CD y un ejemplo completo de feature.
 
-### ✨ Added — Proyecto base KMP
+### Added
+
+#### Proyecto base KMP
 
 - **Kotlin Multiplatform** con targets Android e iOS (`shared`, `androidApp`, `iosApp`)
 - **Compose Multiplatform 1.11.1** como UI compartida con Material Design 3
@@ -42,7 +50,7 @@ infraestructura de IA, calidad de código, CI/CD y un ejemplo completo de featur
 - Íconos de lanzador Android y assets de iOS (`AppIcon`, `AccentColor`)
 - `expect`/`actual` de `Platform` para obtener el nombre de plataforma en iOS y Android
 
-### ✨ Added — Infraestructura de IA (`AGENTS.md` + `.agents/`)
+#### Infraestructura de IA (`AGENTS.md` + `.agents/`)
 
 - **`AGENTS.md`** como fuente de verdad para agentes de IA (estándar [agents.md](https://agents.md/))
   - Tech stack, estructura de módulos, reglas de arquitectura, hard rules
@@ -60,7 +68,7 @@ infraestructura de IA, calidad de código, CI/CD y un ejemplo completo de featur
 - **`.agents/scripts/sync-skills.sh`** — sincroniza skills como symlinks en 7 IDEs (Claude Code, Copilot, Cursor, JetBrains, Junie, Antigravity, Agent)
 - **`.agents/scripts/remove-skill.sh`** — elimina una skill y sus symlinks
 
-### ✨ Added — `init-project.sh`
+#### `init-project.sh`
 
 - Script interactivo y no interactivo para convertir el scaffolding en un proyecto real
 - Flags: `--name`, `--package`, `--app-name`, `--module`, `--yes`, `--help`
@@ -80,7 +88,7 @@ infraestructura de IA, calidad de código, CI/CD y un ejemplo completo de featur
 - Reinicia historial de git con commit inicial (opcional)
 - **`SETUP.md`** — guía paso a paso de cómo usar el inicializador
 
-### ✨ Added — Calidad de código
+#### Calidad de código
 
 - **ktlint 14.2.0** (engine 1.8.0) configurado únicamente vía `.editorconfig`:
   - `ktlint_code_style = android_studio`
@@ -103,7 +111,7 @@ infraestructura de IA, calidad de código, CI/CD y un ejemplo completo de featur
   - `./gradlew ktlintFormatAll` / `ktlintCheckAll` / `detektAll` / `lintAll`
 - `@Suppress("ktlint:standard:function-naming", "FunctionNaming")` en `MainViewController.kt` (PascalCase requerido por Swift interop)
 
-### ✨ Added — CI/CD (GitHub Actions)
+#### CI/CD (GitHub Actions)
 
 - **`.github/workflows/ci.yml`** — Pipeline en 3 jobs con dependencias secuenciales:
   1. `quality` — ktlint + detekt + Android Lint (ubuntu, 15 min timeout)
@@ -118,14 +126,14 @@ infraestructura de IA, calidad de código, CI/CD y un ejemplo completo de featur
 - **`.github/dependabot.yml`** — Actualizaciones semanales agrupadas (Gradle + GitHub Actions)
 - **`iosApp.xcodeproj/xcshareddata/xcschemes/iosApp.xcscheme`** — Scheme compartido en git para que `xcodebuild -scheme iosApp` funcione en CI sin `xcuserdata`
 
-### ✨ Added — Actualizaciones de versiones
+#### Actualizaciones de versiones
 
 - AGP `9.0.1 → 9.2.1` (requiere Gradle ≥ 9.4.1)
 - `android-compileSdk` y `android-targetSdk` `36 → 37`
 - Gradle wrapper `9.4.1 → 9.5.1` con SHA-256 verificado
 - Corregido: bloque `androidLibrary {}` deprecado → `android {}` en `shared/build.gradle.kts`
 
-### ✨ Added — Feature de ejemplo: `PlatformInfo`
+#### Feature de ejemplo: `PlatformInfo`
 
 Feature completa que demuestra **todas las capas de Clean Architecture** con MVI-lite y Koin.
 Se auto-elimina cuando se ejecuta `init-project.sh`:
@@ -159,7 +167,7 @@ Se auto-elimina cuando se ejecuta `init-project.sh`:
 - `kotlinx-coroutines-test 1.11.0`
 - `app.cash.turbine:turbine 1.2.1`
 
-### ✨ Added — Skill `feature-implementation`
+#### Skill `feature-implementation`
 
 - **`.agents/skills/feature-implementation/SKILL.md`** — workflow de 5 fases:
   1. Context Loading (AGENTS.md + referencias según el tipo de tarea)
@@ -175,7 +183,7 @@ Se auto-elimina cuando se ejecuta `init-project.sh`:
   - Guía de uso embebida en comentarios HTML
 - `reports/` agregado a `.gitignore`
 
-### ✨ Added — Skill `feature-implementation` (mejoras al template)
+#### Skill `feature-implementation` (mejoras al template)
 
 - `report-template.html`: nuevo bloque `.change-summary` por archivo con descripción de impacto:
   - **Archivo nuevo** — columna única "✅ Por qué se crea"
@@ -183,14 +191,16 @@ Se auto-elimina cuando se ejecuta `init-project.sh`:
   - **Archivo eliminado** — columna única "🗑️ Por qué se elimina"
   - Guía de uso al pie del template actualizada con los tres patrones de HTML
 
-### ✨ Added — Calidad de código (Hard Rules)
+#### Calidad de código (Hard Rules)
 
 - `kmp-best-practices/SKILL.md`: nueva sección `⛔ Hard Rules` con reglas no negociables:
   - Solo versiones estables en `libs.versions.toml` (prohibido alpha/beta/rc/snapshot)
   - `libs.versions.toml` como única fuente de versiones; siempre `version.ref`, nunca literal en `.kts`
   - Sin comentarios inline en el catálogo de versiones
 
-### 🔧 Fixed — Código
+### Fixed
+
+#### Código
 
 - `App.kt` en `commonMain`: wildcard import `androidx.compose.runtime.*` expandido a imports explícitos (regla `no-wildcard-imports` de ktlint)
 - `PlatformInfoContent.kt`: `@Preview` movido de `commonMain` a `androidMain` para evitar `Unresolved reference 'ui'` en `org.jetbrains.compose.ui.tooling.preview`
@@ -198,7 +208,7 @@ Se auto-elimina cuando se ejecuta `init-project.sh`:
 - `PlatformInfoViewModelTest.kt`: aserciones de safe call `?.` mejoradas a `assertNotNull(x).field`
 - `report-template.html`: eliminado `</span>` huérfano en la sección de archivos eliminados
 
-### 🔧 Fixed — Versiones y configuración
+#### Versiones y configuración
 
 - `androidApp/build.gradle.kts`: `versionName` corregido de `"1.0"` a `"1.0.0"` (semver)
 - `iosApp/Configuration/Config.xcconfig`: `MARKETING_VERSION` corregido de `1.0` a `1.0.0`; añadido `IPHONEOS_DEPLOYMENT_TARGET=16.0`
@@ -209,5 +219,4 @@ Se auto-elimina cuando se ejecuta `init-project.sh`:
 
 ---
 
-[Unreleased]: https://github.com/hacybeyker/ScaffoldingKMP/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/hacybeyker/ScaffoldingKMP/releases/tag/v1.0.0
+[Unreleased]: https://github.com/Hacybeyker/ScaffoldingKMP/commits/main
