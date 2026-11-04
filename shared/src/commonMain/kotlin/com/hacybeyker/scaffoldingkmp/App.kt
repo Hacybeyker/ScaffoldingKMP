@@ -1,17 +1,17 @@
 package com.hacybeyker.scaffoldingkmp
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import com.hacybeyker.scaffoldingkmp.feature.platforminfo.di.platformInfoModule
-import com.hacybeyker.scaffoldingkmp.feature.platforminfo.presentation.PlatformInfoScreen
+import com.hacybeyker.scaffoldingkmp.core.designsystem.ScaffoldingKMPTheme
+import com.hacybeyker.scaffoldingkmp.feature.home.di.homeModule
+import com.hacybeyker.scaffoldingkmp.navigation.AppNavDisplay
 import org.koin.compose.KoinApplication
+import org.koin.dsl.koinConfiguration
 
-@Suppress("DEPRECATION")
 @Composable
 fun App() {
-    KoinApplication(application = { modules(platformInfoModule) }) {
-        MaterialTheme {
-            PlatformInfoScreen()
+    KoinApplication(configuration = koinConfiguration { modules(homeModule) }) {
+        ScaffoldingKMPTheme {
+            AppNavDisplay()
         }
     }
 }

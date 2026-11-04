@@ -41,11 +41,13 @@ Los pasos 3 y 5 necesitan macOS con Xcode. Si no están disponibles, dilo en la 
 
 Sigue el perfil (variante kmp). Particularidades de este proyecto:
 
-- Todo el código vive en `{{MODULE_NAME}}`: `commonMain` para la UI y la lógica compartidas, `androidMain` e `iosMain` para las implementaciones de plataforma. `androidApp` (`MainActivity`) e `iosApp` (`iOSApp.swift`, `ContentView.swift`) solo arrancan la app: no les agregues lógica.
+- Todo el código vive en `{{MODULE_NAME}}`. En `commonMain`: `core/designsystem` (tema y tokens), `feature/<nombre>/{domain,data,ui,di}` y `navigation/AppNavDisplay.kt`. `androidMain` e `iosMain` repiten los paquetes de la feature con sus implementaciones de plataforma. `androidApp` (`MainActivity`) e `iosApp` (`iOSApp.swift`, `ContentView.swift`) solo arrancan la app: no les agregues lógica.
+- El código de plataforma de una feature vive en la propia feature: la interfaz en `commonMain` y una implementación por plataforma, registrada en `internal expect fun <feature>PlatformModule(): Module`, que el módulo de la feature incluye. Cuando dos o más features lo necesiten, se sube a `core` con un `platformModule()`.
+- Koin se inicia una sola vez, en `App.kt`, con el módulo de cada feature.
+- **Cada `NavKey` nueva se registra en `navConfig` (`navigation/AppNavDisplay.kt`):** el back stack se serializa con ese módulo (iOS no tiene reflexión) y una clave sin registrar hace fallar la app al guardar el estado.
 - `MainViewController()`, en `iosMain`, es el puente con SwiftUI. Va en PascalCase porque Swift lo llama como `MainViewControllerKt.MainViewController()`.
-- Koin se inicia una sola vez, en `App.kt`, con los módulos de cada feature.
-- Tests: `commonTest` para la lógica compartida; `androidHostTest` e `iosTest` para lo propio de cada plataforma.
-- `feature/platforminfo` es el ejemplo del template (`init-project.sh` lo borra). Todavía usa el contrato anterior (State/Event/Effect en `presentation/`) y se alineará con el perfil en otro PR: no lo copies para features nuevas.
+- Tests: `commonTest` para la lógica compartida, con `runTestWithMainDispatcher` (`core/testing`) en los de ViewModel; `androidHostTest` e `iosTest` para lo propio de cada plataforma. Cada módulo de Koin tiene su test con `verify()` de koin-test en `androidHostTest` (solo existe en JVM).
+- `feature/home` es el ejemplo del template: `init-project.sh` lo reduce a una pantalla mínima (`HomeNavKey`, `homeEntry()` y `HomeScreen`).
 
 ## Reglas del proyecto
 
