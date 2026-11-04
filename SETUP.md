@@ -40,6 +40,7 @@ El script pregunta:
 | 📦 Package base | `com.empresa.miapp` | Minúsculas separadas por puntos |
 | 🏷️ Nombre visible de la app | `Mi App Genial` | Libre (puede tener espacios). Default: el nombre del proyecto |
 | 🧩 Módulo principal de Compose | `shared` | Déjalo por defecto salvo que reestructures los módulos |
+| 🐙 Usuario u org de GitHub | `mi-empresa` | Opcional. Alimenta los badges del README y el link del CHANGELOG. Vacío deja el placeholder `TU_USUARIO`, que el script te recuerda al terminar |
 
 Al final pregunta por **una limpieza opcional** (recomendada):
 
@@ -60,6 +61,7 @@ Y aplica **automáticamente** estas tareas (no necesitas hacer nada):
   --name MiAppGenial \
   --package com.empresa.miapp \
   --app-name "Mi App Genial" \
+  --github-user mi-empresa \
   --yes
 ```
 
